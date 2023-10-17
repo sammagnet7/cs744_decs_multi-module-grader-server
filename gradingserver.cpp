@@ -10,8 +10,12 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <arpa/inet.h>
+#include <vector>
+#include <stdint.h>
+#include<thread>
 
 using namespace std;
+
 
 const string EXPECTED_OUTPUT = "1 2 3 4 5 6 7 8 9 10 ";
 const int MAX_QUEUE_SIZE = 50;
@@ -41,129 +45,7 @@ string read_file(string file);
 void save_to_file(string filename, string input);
 
 // removes all the temporarily created files
-void removeTempFiles();
-
-
-//<<<<<<<<<<<<<<<===================== main methods below ======================>>>>>>>>>>>>>>>>
-//
-//<<<<<<<<<<<<<<<===============================================================>>>>>>>>>>>>>>>>
-
-string run_prog(string prog)
-{
-    string response = "";
-
-    // Compile the program
-    int compile_status = system("g++ -o received received.cpp > compiler_output.txt 2>&1");
-
-    if (compile_status != 0)
-    {
-        // COMPILER__ERROR
-        // reads compiler error from temporary file
-        string compiler_output = read_file("compiler_output.txt");
-        response = "COMPILER ERROR\n" + compiler_output + "\n";
-
-        return response;
-    }
-
-    // otherwise Execute program
-    int runtime_status = system("{ ./received; } > prog_output.txt 2>&1");
-
-    // read the program's output from temporary file
-    string run_output = read_file("prog_output.txt");
-
-    if (runtime_status != 0)
-    {
-        // RUNTIME__ERROR
-        response = "RUNTIME ERROR\nError code=" + to_string(runtime_status) + "\n" + run_output + "\n";
-        return response;
-    }
-
-    // Otherwise create temporary files to compare
-    save_to_file("actual_file.txt", run_output);
-    save_to_file("expected_file.txt", string(EXPECTED_OUTPUT));
-
-    // Run the diff command to compare the temporary files
-    int ret = system("diff -u expected_file.txt actual_file.txt > diffcheck.txt 2>&1");
-
-    if (ret == 0)
-    {
-        // PASS__
-        response = "PASS\n";
-        return response;
-    }
-
-    // OUTPUT__ERROR
-    string diff_output = read_file("diffcheck.txt");
-    response = "OUTPUT ERROR\n" + diff_output + "\n";
-    return response;
-}
-
-int handle_client(int client_socket)
-{
-    string received = "";
-    // Receive the source code from the client
-    if (int resp_code = receiveall(client_socket, received) != 0)
-        return resp_code;
-
-    // Save the received source code to a file
-    save_to_file("received.cpp", received);
-
-    //evaluate
-    string final_response = run_prog(received);
-
-    // Send response
-    if (int resp_code = sendall(client_socket, final_response.c_str(), final_response.length()) != 0)
-        return resp_code;
-
-    // Closing client
-    close(client_socket);
-    return 0;
-}
-
-int main(int argc, char *argv[])
-{
-    // Describe Usage
-    if (argc != 2)
-    {
-        cerr << "Usage: " << argv[0] << " <port>" << endl;
-        return 1;
-    }
-    // Extracting from cmd args
-    int port = atoi(argv[1]);
-    int server_socket = 0;
-
-    // binding server socket
-    if ((server_socket = bind_server_socket(port)) < 0)
-        return server_socket;
-
-    // Server listens on the socket. Here we are telling 20 clients can wait in the backlog queue until they are assigned with client specific socket
-    if( listen(server_socket, MAX_QUEUE_SIZE) < 0 ){
-        perror("Listen failed");
-        close(server_socket);
-        return -1;
-    }
-
-    cout << "Server listening on port: "<< port <<endl;
-
-    while (true)
-    {
-        // gets new client socket upon 'Accept'
-        int client_socket = getClientSocket(server_socket);
-        if (client_socket < 0)
-            continue;
-
-        // Business logic runs here
-        if (int resp_code = handle_client(client_socket) != 0)
-            return resp_code;
-
-        // cleaning memory
-        close(client_socket);
-        removeTempFiles();
-    }
-    close(server_socket);
-
-    return 0;
-}
+void removeTempFiles(vector<string> files_to_remove);
 
 
 
@@ -213,20 +95,23 @@ int getClientSocket(int binded_server_socket)
 
 // receives all incoming data associated with given socket into the pointed string
 int receiveall(int client_socket, string &data)
-{
-    int datalen = 0;
+{   
     int totalReceived = 0;
     int bytesLeft = 0;
     int currentLen = 0;
 
-    ssize_t bytes_received = recv(client_socket, &datalen, sizeof(int), 0);
+    uint32_t tmp,datalen;  
+    ssize_t bytes_received = recv(client_socket, &tmp, sizeof tmp, 0);
+    datalen = ntohl(tmp);
+    
+    cout<<"Thread id: "<< std::this_thread::get_id()<< ":: File size is: "<<datalen<<endl;
+
     if (bytes_received <= 0)
     {
         perror("Error receiving source code");
         close(client_socket);
         return -1;
     }
-
     char buffer[datalen];
     bytesLeft = datalen;
     while (totalReceived < datalen)
@@ -240,7 +125,7 @@ int receiveall(int client_socket, string &data)
         else if (currentLen == -1)
         {
             perror("Error while receiving data at server");
-            cout << "Partial data received of size: " << totalReceived;
+            cout <<"Thread id: "<< std::this_thread::get_id()<< ":: Partial data received of size: " << totalReceived;
             close(client_socket);
             break;
         }
@@ -249,6 +134,8 @@ int receiveall(int client_socket, string &data)
         data += temp;
         totalReceived += currentLen;
         bytesLeft -= currentLen;
+
+        cout<<"Thread id: "<< std::this_thread::get_id()<< ":: Total data received: "<<totalReceived<<endl;
     }
     return currentLen == -1 ? -1 : 0; // return -1 on failure, 0 on success
 }
@@ -260,8 +147,9 @@ int sendall(int socket, const char *buf, int datalen)
     int bytesleft = datalen; // how many we have left to send
     int currentLen;          // successfully sent data length on current pass
 
-    // uint32_t len = htonl(datalen);
-    send(socket, &datalen, sizeof(datalen), 0);
+    uint32_t n = datalen;
+    uint32_t tmp = htonl(n);
+    send(socket, &tmp, sizeof(tmp), 0);
 
     while (totalsent < datalen)
     {
@@ -313,17 +201,173 @@ void _remove(string file)
     }
     catch (...)
     {
+        cout<<"error in remove";
     }
 }
 
 // removes all the temporarily created files
-void removeTempFiles()
+void removeTempFiles(vector<string> files_to_remove)
 {
-    _remove("compiler_output.txt");
-    _remove("prog_output.txt");
-    _remove("actual_file.txt");
-    _remove("expected_file.txt");
-    _remove("diffcheck.txt");
-    _remove("received.cpp");
-    _remove("received");
+    for(string file : files_to_remove){
+        _remove(file);
+    }
+}
+
+
+
+//<<<<<<<<<<<<<<<===================== main methods below ======================>>>>>>>>>>>>>>>>
+//
+//<<<<<<<<<<<<<<<===============================================================>>>>>>>>>>>>>>>>
+
+string run_prog(string prog, string client_socket, vector<string>& files_to_remove)
+{
+    string response = "";
+
+    // Compile the program
+    string recv_filename = "received_"+client_socket+".cpp" ;
+    string obj_filename = "received_"+client_socket;
+    string compiler_output_filename = "compiler_output_"+client_socket+".log";
+    string compile_command = "g++ -o "+obj_filename+" "+recv_filename+" > "+compiler_output_filename+" 2>&1";
+    
+    int compiled_status = system(compile_command.c_str());
+
+    files_to_remove.push_back(recv_filename);
+    files_to_remove.push_back(obj_filename);
+    files_to_remove.push_back(compiler_output_filename);
+
+    
+    if (compiled_status != 0)
+    {
+        // COMPILER__ERROR
+        // reads compiler error from temporary file
+        string compiler_output = read_file(compiler_output_filename.c_str());
+        response = "COMPILER ERROR\n" + compiler_output + "\n";
+
+        return response;
+    }
+
+ 
+    // otherwise Execute program
+    string prog_output_filename = "prog_output_"+client_socket+".log";
+    string prog_run_command = "{ ./"+obj_filename+"; } > "+prog_output_filename+" 2>&1";
+    int runtime_status = system(prog_run_command.c_str());
+
+    // read the program's output from temporary file
+    string run_output = read_file(prog_output_filename.c_str());
+
+    files_to_remove.push_back(prog_output_filename);
+
+    if (runtime_status != 0)
+    {
+        // RUNTIME__ERROR
+        response = "RUNTIME ERROR\nError code=" + to_string(runtime_status) + "\n" + run_output + "\n";
+        return response;
+    }
+
+
+    // Otherwise create temporary files to compare
+    string actual_output_filename = "actual_file_"+client_socket+".log";
+    string expected_output_filename = "expected_file_"+client_socket+".log";
+    save_to_file(actual_output_filename, run_output);
+    save_to_file(expected_output_filename, string(EXPECTED_OUTPUT));
+
+
+    // Run the diff command to compare the temporary files
+    string diffcheck_filename = "diffcheck_"+client_socket+".log";
+    string diff_command = "diff -u "+expected_output_filename+" "+actual_output_filename+" > "+diffcheck_filename+" 2>&1";
+    int ret = system(diff_command.c_str());
+
+    files_to_remove.push_back(actual_output_filename);
+    files_to_remove.push_back(expected_output_filename);
+    files_to_remove.push_back(diffcheck_filename);
+
+
+    if (ret == 0)
+    {
+        // PASS__
+        response = "PASS\n";
+        return response;
+    }
+
+    // OUTPUT__ERROR
+    string diff_output = read_file(diffcheck_filename);
+    response = "OUTPUT ERROR\n" + diff_output + "\n";
+    return response;
+}
+
+void handle_client(int client_socket)
+{   
+    string received = "";
+    // Receive the source code from the client
+    if (int resp_code = receiveall(client_socket, received) != 0){
+        // cleaning
+        close(client_socket);
+        return;
+    }
+
+    //List to add all the files being created throughout the process
+    vector<string> files_to_remove;
+
+    string recv_filename = "received_"+to_string(client_socket)+".cpp" ;
+    // Save the received source code to a file
+    save_to_file(recv_filename, received);
+
+    files_to_remove.push_back(recv_filename);
+    
+    //evaluate
+    string final_response = run_prog(received , to_string(client_socket),  files_to_remove);
+
+    // Send response
+    if (int resp_code = sendall(client_socket, final_response.c_str(), final_response.length()) != 0){
+        // cleaning
+        close(client_socket);
+        removeTempFiles(files_to_remove);
+        return;
+    }
+
+    // Closing client
+    close(client_socket);
+    removeTempFiles(files_to_remove);
+    return;
+}
+
+int main(int argc, char *argv[])
+{
+    // Describe Usage
+    if (argc != 2)
+    {
+        cerr << "Usage: " << argv[0] << " <port>" << endl;
+        return 1;
+    }
+    // Extracting from cmd args
+    int port = atoi(argv[1]);
+    int server_socket = 0;
+
+    // binding server socket
+    if ((server_socket = bind_server_socket(port)) < 0)
+        return server_socket;
+
+    // Server listens on the socket. Here we are telling the max number of clients that can wait in the backlog queue until they are assigned with client specific socket
+    if( listen(server_socket, MAX_QUEUE_SIZE) < 0 ){
+        perror("Listen failed");
+        close(server_socket);
+        return -1;
+    }
+
+    cout << "Server listening on port: "<< port <<endl;
+    
+    while (true)
+    {
+        // gets new client socket upon 'Accept'
+        int client_socket = getClientSocket(server_socket);
+        if (client_socket < 0)
+            continue;
+
+        std::thread(handle_client, client_socket).detach();
+
+    }
+
+    close(server_socket);
+
+    return 0;
 }

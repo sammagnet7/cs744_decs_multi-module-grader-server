@@ -8,11 +8,11 @@ client: client.o
 server: server.o
 	@g++ -o server server.o
 
-client.o: gradlingclient.cpp
-	@g++ -o client.o -w -c gradlingclient.cpp
+client.o: gradingclient.cpp
+	@g++ -o client.o -w -c gradingclient.cpp
 
 server.o: gradingserver.cpp
-	@g++ -o server.o -w -c gradingserver.cpp
+	@g++ -std=c++17 -o server.o -w -c gradingserver.cpp
 
 
 client-run:

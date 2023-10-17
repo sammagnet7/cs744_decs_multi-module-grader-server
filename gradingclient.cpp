@@ -10,8 +10,15 @@
 #include <sys/stat.h>
 #include <arpa/inet.h>
 #include <chrono>
+#include <stdint.h>
 
 using namespace std;
+
+double accumulated_time = 0;
+int totalCount=0;
+int successCount = 0;
+int tout_count=0;
+int other_err_count=0;
 
 //<<<<<<<<<<<<<<<============== Utility methods declarations below =============>>>>>>>>>>>>>>>>
 //
@@ -24,7 +31,7 @@ int receiveall(int client_socket, string &data);
 int sendall(int socket, string buf, int datalen);
 
 // makes the CONNECT call from client end and returns the connected socket id upon successful
-int connectsocketbyIpPort(string server_ip, int server_port);
+int connectsocketbyIpPort(string server_ip, int server_port, int timeout_seconds);
 
 // Reads given file into a string and returns it
 string read_file(string ile);
@@ -37,9 +44,9 @@ int main(int argc, char *argv[])
 {
 
     // Describe usage
-    if (argc != 5)
+    if (argc != 6)
     {
-        cerr << "Usage: " << argv[0] << " <serverIP:port> <sourceCodeFileTobeGraded> <loopNum> <sleepTimeSeconds>" << endl;
+        cerr << "Usage: " << argv[0] << " <serverIP:port> <sourceCodeFileTobeGraded> <loopNum> <sleepTimeSeconds> <timeout-seconds>" << endl;
         return 1;
     }
 
@@ -49,19 +56,19 @@ int main(int argc, char *argv[])
     string file_name = argv[2];
     int loopNum = stoi(argv[3]);
     int sleepTime_sec = stoi(argv[4]);
+    int timeout_seconds = stoi(argv[5]);
 
     int client_socket = 0;
-    double accumulated_time = 0;
-    int successCount = 0;
+    totalCount = loopNum;
 
     // Note: LOOP START time
     auto LStart = chrono::high_resolution_clock::now();
     while (loopNum--)
-    {
+    {   
         try
-        {
+        {   
             // Connects client to the server on the specified host-port
-            if ((client_socket = connectsocketbyIpPort(server_ip, server_port)) < 0)
+            if ((client_socket = connectsocketbyIpPort(server_ip, server_port, timeout_seconds)) < 0)
                 throw client_socket;
 
             // Reads the file into a String
@@ -89,11 +96,12 @@ int main(int argc, char *argv[])
 
             accumulated_time += time_taken;
             successCount++;
-        }
-        catch (...)
+        }  catch (...)
         {
+            other_err_count++;
             // catches any exceptions
             cout << "EXCEPTION occured inside loop" << endl;
+            perror("Exception is: ");
         }
         close(client_socket);
         sleep(sleepTime_sec);
@@ -105,14 +113,30 @@ int main(int argc, char *argv[])
     double loop_time = chrono::duration_cast<chrono::milliseconds>(LEnd - LStart).count();
 
     double avgRespTime = successCount > 0 ? (accumulated_time / successCount) : 0;
+
+    double totalCount_p_sec = totalCount > 0 ? ( (totalCount/loop_time)*1000 ) : 0;
     double throughput_p_sec = successCount > 0 ? ( (successCount/loop_time)*1000 ) : 0;
+    double tOut_count_p_sec = tout_count > 0 ? ( (tout_count/loop_time)*1000 ) : 0;
+    double other_err_count_p_sec = other_err_count > 0 ? ( (other_err_count/loop_time)*1000 ) : 0;
+
 
     cout << "-------------------per client basis-------------------------------" << endl;
     cout << "Accumulated response time (in ms) :" << accumulated_time << endl;
     cout << "Average response time (in ms) :" << avgRespTime << endl;
-    cout << "Number of successful responses :" << successCount << endl;
+
+    //request sent should be = throughput + timeout + error rate
+    cout << "Number of total requests sent :" << totalCount << endl; //total requests
+    cout << "Number of successful responses :" << successCount << endl; //throughput
+    cout << "Number of timeout requests :" << tout_count << endl; //timeout
+    cout << "Number of all other error requests :" << other_err_count << endl; //error
+
     cout << "Time taken for completing client loop (in ms) :" << loop_time << endl;
-    cout << "Individual client throughput per seconds :" << throughput_p_sec << endl << endl;
+    cout << "Individual client total requests per seconds :" << totalCount_p_sec << endl;
+    cout << "Individual client throughput per seconds :" << throughput_p_sec << endl;
+    cout << "Individual client timeout requests per seconds :" << tOut_count_p_sec << endl;
+    cout << "Individual client other error requests per seconds :" << other_err_count_p_sec << endl<<endl;
+
+
     return 0;
 }
 
@@ -123,14 +147,22 @@ int main(int argc, char *argv[])
 // receives all incoming data associated with given socket into the pointed string
 int receiveall(int client_socket, string &data_received)
 {
-    int datalen = 0;
     int totalReceived = 0;
     int bytesLeft = 0;
     int currentLen = 0;
 
-    ssize_t bytes_received = recv(client_socket, &datalen, sizeof(int), 0);
+    uint32_t tmp, datalen;  
+    ssize_t bytes_received = recv(client_socket, &tmp, sizeof(tmp), 0);
+    datalen = ntohl(tmp);
+    
     if (bytes_received <= 0)
     {
+        if( errno == ETIMEDOUT || errno == EWOULDBLOCK || errno == EWOULDBLOCK ){
+            tout_count++;
+            other_err_count--;
+            cout<<"while Connecting ::"<< strerror(errno) <<" ::"<< errno;
+        }
+
         perror("Error while receiving data length");
         close(client_socket);
         return -1;
@@ -168,12 +200,24 @@ int sendall(int socket, string buf, int datalen)
     int bytesleft = datalen; // how many we have left to send
     int currentLen;          // successfully sent data length on current pass
 
+    uint32_t n = datalen;
+    uint32_t tmp = htonl(n);
+    
+    cout<<"sending File size: "<<n<<endl;
+    ssize_t sent=0;
     // sends the file size to be sent
-    if (send(socket, &datalen, sizeof(datalen), 0) == -1)
+    if ( ( sent = send(socket, &tmp, sizeof(tmp), 0) ) == -1)
     {
+         if( errno == ETIMEDOUT || errno == EWOULDBLOCK || errno == EWOULDBLOCK ){
+            tout_count++;
+            other_err_count--;
+            cout<<"while Connecting ::"<< strerror(errno) <<" ::"<< errno;
+        }
         perror("Error while sending file size");
         return -1;
     }
+    cout<<"File size sent: "<< sent <<" on socket: "<<socket<<endl;
+
 
     // sends total file data
     while (totalsent < datalen)
@@ -181,18 +225,18 @@ int sendall(int socket, string buf, int datalen)
         currentLen = send(socket, buf.substr(totalsent).c_str(), bytesleft, 0);
         if (currentLen == -1)
         {
-            perror("Error while sending the data");
+            perror("Error while sending the data\n");
             break;
         }
         totalsent += currentLen;
         bytesleft -= currentLen;
-        // std::cout << "Total data sent from this machine: " << totalsent << endl;
+        std::cout << "File data sent: " << totalsent <<" on socket: "<<socket<< endl;
     }
     return currentLen == -1 ? -1 : 0; // return -1 on failure, 0 on success
 }
 
 // Makes the CONNECT call from client end and returns the connected socket id upon successful
-int connectsocketbyIpPort(string server_ip, int server_port)
+int connectsocketbyIpPort(string server_ip, int server_port, int timeout_seconds)
 {
     int client_socket = socket(PF_INET, SOCK_STREAM, 0);
     if (client_socket < 0)
@@ -201,6 +245,21 @@ int connectsocketbyIpPort(string server_ip, int server_port)
         return -1;
     }
 
+    //set socket timeout
+    struct timeval timeout;      
+    timeout.tv_sec = timeout_seconds;
+    timeout.tv_usec = 0;
+    
+    if (setsockopt (client_socket, SOL_SOCKET, SO_SNDTIMEO, &timeout,
+                sizeof timeout) < 0)
+        perror("setsockopt failed\n");
+
+    if (setsockopt (client_socket, SOL_SOCKET, SO_RCVTIMEO, &timeout,
+                sizeof timeout) < 0)
+        perror("setsockopt failed\n");
+
+
+    //connect socket
     struct sockaddr_in target_server_address;
     memset(&target_server_address, 0, sizeof(target_server_address));
 
@@ -212,9 +271,15 @@ int connectsocketbyIpPort(string server_ip, int server_port)
 
     if (connect(client_socket, (struct sockaddr *)&target_server_address, sizeof(target_server_address)) < 0)
     {
-        perror("Error connecting to server");
+        if( errno == ETIMEDOUT || errno == EWOULDBLOCK || errno == EWOULDBLOCK ){
+            tout_count++;
+            other_err_count--;
+            cout<<"while Connecting ::"<< strerror(errno) <<" ::"<< errno;
+        }
+        //perror("Error connecting to server");
         return -1;
     }
+
     return client_socket;
 }
 
