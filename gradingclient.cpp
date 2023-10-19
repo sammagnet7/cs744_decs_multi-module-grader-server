@@ -157,7 +157,7 @@ int receiveall(int client_socket, string &data_received)
     
     if (bytes_received <= 0)
     {
-        if( errno == ETIMEDOUT || errno == EWOULDBLOCK || errno == EWOULDBLOCK ){
+        if( errno == ETIMEDOUT || errno == EWOULDBLOCK || errno == EAGAIN ){
             tout_count++;
             other_err_count--;
             cout<<"while Connecting ::"<< strerror(errno) <<" ::"<< errno;
@@ -208,7 +208,7 @@ int sendall(int socket, string buf, int datalen)
     // sends the file size to be sent
     if ( ( sent = send(socket, &tmp, sizeof(tmp), 0) ) == -1)
     {
-         if( errno == ETIMEDOUT || errno == EWOULDBLOCK || errno == EWOULDBLOCK ){
+         if( errno == ETIMEDOUT || errno == EWOULDBLOCK || errno == EAGAIN ){
             tout_count++;
             other_err_count--;
             cout<<"while Connecting ::"<< strerror(errno) <<" ::"<< errno;
@@ -271,7 +271,7 @@ int connectsocketbyIpPort(string server_ip, int server_port, int timeout_seconds
 
     if (connect(client_socket, (struct sockaddr *)&target_server_address, sizeof(target_server_address)) < 0)
     {
-        if( errno == ETIMEDOUT || errno == EWOULDBLOCK || errno == EWOULDBLOCK ){
+        if( errno == ETIMEDOUT || errno == EWOULDBLOCK || errno == EAGAIN ){
             tout_count++;
             other_err_count--;
             cout<<"while Connecting ::"<< strerror(errno) <<" ::"<< errno;

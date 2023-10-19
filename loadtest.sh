@@ -105,7 +105,7 @@ overall_avg_resp_t=$(awk '{ if($1 == 0){print 0} else {print $2/$1} }' <<< "${su
 ############################
 rm output_*
 echo "Number of clients :"$numClients
-echo "Average response time (in ms) :"$overall_avg_resp_t
+echo "Overall average response time (in ms) :"$overall_avg_resp_t
 
 echo "Overall requests sent per sec:"$overall_totRequests
 echo "Overall throughput per sec:"$overall_throughput

@@ -20,7 +20,7 @@ clients_vs_responseTime = []
 
 for count in range(minClients,maxClients+1,steps):
 
-	output = run(['./loadtest.sh', str(count),'5','1', '0.1'], stdout=PIPE).stdout.splitlines()
+	output = run(['./loadtest.sh', str(count),'5','0.5', '0.5'], stdout=PIPE).stdout.splitlines()
 
 	clients.append(int(count))
 	clients_vs_responseTime.append( float( str( output[1] ).split( ':' )[1].rstrip("'") ) )
@@ -30,7 +30,7 @@ for count in range(minClients,maxClients+1,steps):
 	clients_vs_timeout.append( float( str( output[4] ).split( ':' )[1].rstrip("'") ) )
 	clients_vs_errReq.append( float( str( output[5] ).split( ':' )[1].rstrip("'") ) )
 
-	#time.sleep(0.2)
+	time.sleep(0.1)
 
 print(clients_vs_responseTime)	
 print(clients_vs_reqSent)
