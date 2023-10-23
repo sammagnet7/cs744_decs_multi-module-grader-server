@@ -1,3 +1,5 @@
+#include "fileio.hpp"
+
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
@@ -33,112 +35,6 @@ int sendall(int socket, string buf, int datalen);
 // makes the CONNECT call from client end and returns the connected socket id upon successful
 int connectsocketbyIpPort(string server_ip, int server_port, int timeout_seconds);
 
-// Reads given file into a string and returns it
-string read_file(string ile);
-
-//<<<<<<<<<<<<<<<===================== main method below ======================>>>>>>>>>>>>>>>>
-//
-//<<<<<<<<<<<<<<<===============================================================>>>>>>>>>>>>>>>>
-
-int main(int argc, char *argv[])
-{
-
-    // Describe usage
-    if (argc != 6)
-    {
-        cerr << "Usage: " << argv[0] << " <serverIP:port> <sourceCodeFileTobeGraded> <loopNum> <sleepTimeSeconds> <timeout-seconds>" << endl;
-        return 1;
-    }
-
-    // Extract all the command line args
-    string server_ip = strtok(argv[1], ":");
-    int server_port = stoi(strtok(NULL, ":"));
-    string file_name = argv[2];
-    int loopNum = stoi(argv[3]);
-    int sleepTime_sec = stoi(argv[4]);
-    int timeout_seconds = stoi(argv[5]);
-
-    int client_socket = 0;
-    totalCount = loopNum;
-
-    // Note: LOOP START time
-    auto LStart = chrono::high_resolution_clock::now();
-    while (loopNum--)
-    {   
-        try
-        {   
-            // Connects client to the server on the specified host-port
-            if ((client_socket = connectsocketbyIpPort(server_ip, server_port, timeout_seconds)) < 0)
-                throw client_socket;
-
-            // Reads the file into a String
-            string source_code = read_file(file_name);
-
-            // Note: data TRANSMISSION START time
-            auto Tsend = chrono::high_resolution_clock::now();
-
-            // Send the file data to the client iteratively
-            if (int resp_code = sendall(client_socket, source_code.c_str(), source_code.length()) != 0)
-                throw resp_code;
-
-            // Receive the source code from the client
-            string server_response = "";
-            if (int resp_code = receiveall(client_socket, server_response) != 0)
-                throw resp_code;
-
-            // Note: data RECEIVING END time
-            auto Trecv = chrono::high_resolution_clock::now();
-
-            // Calculating total time taken for transmit and receive.
-            double time_taken = chrono::duration_cast<chrono::milliseconds>(Trecv - Tsend).count();
-
-            cout << server_response << endl;
-
-            accumulated_time += time_taken;
-            successCount++;
-        }  catch (...)
-        {
-            other_err_count++;
-            // catches any exceptions
-            cout << "EXCEPTION occured inside loop" << endl;
-            perror("Exception is: ");
-        }
-        close(client_socket);
-        sleep(sleepTime_sec);
-    }
-    // Note: LOOP END time
-    auto LEnd = chrono::high_resolution_clock::now();
-
-    // Calculating total time taken by the loop.
-    double loop_time = chrono::duration_cast<chrono::milliseconds>(LEnd - LStart).count();
-
-    double avgRespTime = successCount > 0 ? (accumulated_time / successCount) : 0;
-
-    double totalCount_p_sec = totalCount > 0 ? ( (totalCount/loop_time)*1000 ) : 0;
-    double throughput_p_sec = successCount > 0 ? ( (successCount/loop_time)*1000 ) : 0;
-    double tOut_count_p_sec = tout_count > 0 ? ( (tout_count/loop_time)*1000 ) : 0;
-    double other_err_count_p_sec = other_err_count > 0 ? ( (other_err_count/loop_time)*1000 ) : 0;
-
-
-    cout << "-------------------per client basis-------------------------------" << endl;
-    cout << "Accumulated response time (in ms) :" << accumulated_time << endl;
-    cout << "Average response time (in ms) :" << avgRespTime << endl;
-
-    //request sent should be = throughput + timeout + error rate
-    cout << "Number of total requests sent :" << totalCount << endl; //total requests
-    cout << "Number of successful responses :" << successCount << endl; //throughput
-    cout << "Number of timeout requests :" << tout_count << endl; //timeout
-    cout << "Number of all other error requests :" << other_err_count << endl; //error
-
-    cout << "Time taken for completing client loop (in ms) :" << loop_time << endl;
-    cout << "Individual client total requests per seconds :" << totalCount_p_sec << endl;
-    cout << "Individual client throughput per seconds :" << throughput_p_sec << endl;
-    cout << "Individual client timeout requests per seconds :" << tOut_count_p_sec << endl;
-    cout << "Individual client other error requests per seconds :" << other_err_count_p_sec << endl<<endl;
-
-
-    return 0;
-}
 
 //<<<<<<<<<<<<<<<=============== Utility methods definitions below =============>>>>>>>>>>>>>>>>
 //
@@ -283,19 +179,107 @@ int connectsocketbyIpPort(string server_ip, int server_port, int timeout_seconds
     return client_socket;
 }
 
-// Reads given file into a string and returns it
-string read_file(string file)
+
+//<<<<<<<<<<<<<<<===================== main method below ======================>>>>>>>>>>>>>>>>
+//
+//<<<<<<<<<<<<<<<===============================================================>>>>>>>>>>>>>>>>
+
+int main(int argc, char *argv[])
 {
-    ifstream filestream(file, ios::binary);
-    string filedata((istreambuf_iterator<char>(filestream)),
-                    istreambuf_iterator<char>());
-    /*
-     string txt, txt_accumulator;
-     while (getline(filestream, txt))
-     {
-         txt_accumulator += (txt + "\n");
-     }
-     */
-    filestream.close();
-    return filedata;
+
+    // Describe usage
+    if (argc != 6)
+    {
+        cerr << "Usage: " << argv[0] << " <serverIP:port> <sourceCodeFileTobeGraded> <loopNum> <sleepTimeSeconds> <timeout-seconds>" << endl;
+        return 1;
+    }
+
+    // Extract all the command line args
+    string server_ip = strtok(argv[1], ":");
+    int server_port = stoi(strtok(NULL, ":"));
+    string file_name = argv[2];
+    int loopNum = stoi(argv[3]);
+    int sleepTime_sec = stoi(argv[4]);
+    int timeout_seconds = stoi(argv[5]);
+
+    int client_socket = 0;
+    totalCount = loopNum;
+
+    // Note: LOOP START time
+    auto LStart = chrono::high_resolution_clock::now();
+    while (loopNum--)
+    {   
+        try
+        {   
+            // Connects client to the server on the specified host-port
+            if ((client_socket = connectsocketbyIpPort(server_ip, server_port, timeout_seconds)) < 0)
+                throw client_socket;
+
+            // Reads the file into a String
+            string source_code = read_file(file_name);
+
+            // Note: data TRANSMISSION START time
+            auto Tsend = chrono::high_resolution_clock::now();
+
+            // Send the file data to the client iteratively
+            if (int resp_code = sendall(client_socket, source_code.c_str(), source_code.length()) != 0)
+                throw resp_code;
+
+            // Receive the source code from the client
+            string server_response = "";
+            if (int resp_code = receiveall(client_socket, server_response) != 0)
+                throw resp_code;
+
+            // Note: data RECEIVING END time
+            auto Trecv = chrono::high_resolution_clock::now();
+
+            // Calculating total time taken for transmit and receive.
+            double time_taken = chrono::duration_cast<chrono::milliseconds>(Trecv - Tsend).count();
+
+            cout << server_response << endl;
+
+            accumulated_time += time_taken;
+            successCount++;
+        }  catch (...)
+        {
+            other_err_count++;
+            // catches any exceptions
+            cout << "EXCEPTION occured inside loop" << endl;
+            perror("Exception is: ");
+        }
+        close(client_socket);
+        sleep(sleepTime_sec);
+    }
+    // Note: LOOP END time
+    auto LEnd = chrono::high_resolution_clock::now();
+
+    // Calculating total time taken by the loop.
+    double loop_time = chrono::duration_cast<chrono::milliseconds>(LEnd - LStart).count();
+
+    double avgRespTime = successCount > 0 ? (accumulated_time / successCount) : 0;
+
+    double totalCount_p_sec = totalCount > 0 ? ( (totalCount/loop_time)*1000 ) : 0;
+    double throughput_p_sec = successCount > 0 ? ( (successCount/loop_time)*1000 ) : 0;
+    double tOut_count_p_sec = tout_count > 0 ? ( (tout_count/loop_time)*1000 ) : 0;
+    double other_err_count_p_sec = other_err_count > 0 ? ( (other_err_count/loop_time)*1000 ) : 0;
+
+
+    cout << "-------------------per client basis-------------------------------" << endl;
+    cout << "Accumulated response time (in ms) :" << accumulated_time << endl;
+    cout << "Average response time (in ms) :" << avgRespTime << endl;
+
+    //request sent should be = throughput + timeout + error rate
+    cout << "Number of total requests sent :" << totalCount << endl; //total requests
+    cout << "Number of successful responses :" << successCount << endl; //throughput
+    cout << "Number of timeout requests :" << tout_count << endl; //timeout
+    cout << "Number of all other error requests :" << other_err_count << endl; //error
+
+    cout << "Time taken for completing client loop (in ms) :" << loop_time << endl;
+    cout << "Individual client total requests per seconds :" << totalCount_p_sec << endl;
+    cout << "Individual client throughput per seconds :" << throughput_p_sec << endl;
+    cout << "Individual client timeout requests per seconds :" << tOut_count_p_sec << endl;
+    cout << "Individual client other error requests per seconds :" << other_err_count_p_sec << endl<<endl;
+
+
+    return 0;
 }

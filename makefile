@@ -2,17 +2,23 @@ source: client-server
 
 client-server: client server
 
-client: client.o
-	@g++ -o submit client.o
+client: client.o fileio.o fileio.hpp
+	g++ -std=c++17 -w -o submit gradingclient.o fileio.o
 
-server: server.o
-	@g++ -o server server.o
+server: server.o fileio.o gradingserver_worker.o fileio.hpp gradingserver_worker.hpp
+	g++ -std=c++17 -w -o server gradingserver.o fileio.o gradingserver_worker.o
 
 client.o: gradingclient.cpp
-	@g++ -o client.o -w -c gradingclient.cpp
+	g++ -std=c++17 -w -c gradingclient.cpp
 
 server.o: gradingserver.cpp
-	@g++ -std=c++17 -o server.o -w -c gradingserver.cpp
+	g++ -std=c++17 -w -c gradingserver.cpp
+
+fileio.o: fileio.cpp fileio.hpp
+	g++ -std=c++17 -w -c fileio.cpp
+
+gradingserver_worker.o: gradingserver_worker.cpp
+	g++ -std=c++17 -w -c gradingserver_worker.cpp
 
 
 client-run:
@@ -29,4 +35,4 @@ server-run:
 
 clean:
 	@-rm submit server
-	@find . -type f -name "*.o" -exec rm {} \; -o -name "output_*" -exec rm {} \;
+	@find . -type f -name "*.o" -exec rm {} \; -o -name "temp_file/*" -exec rm {} \;

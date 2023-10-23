@@ -13,11 +13,11 @@ timeout=$4
 counter=$numClients
 
 for (( i = 0; i < $counter; i++ )); do
-#asc	./submit 10.157.3.213:8080 test/source_P.cpp $loopNum $sleepTimeSeconds $timeout > output_$i.txt 2>&1 &
-#	nohup ./submit localhost:8080 test/source_P.cpp $loopNum $sleepTimeSeconds $timeout > output_$i.txt 2>&1 &
-#ank	./submit 192.168.0.103:8080 test/source_P.cpp $loopNum $sleepTimeSeconds $timeout > output_$i.txt 2>&1 & 
-#	./submit 192.168.0.101:8080 test/source_P.cpp $loopNum $sleepTimeSeconds $timeout > output_$i.txt 2>&1 &
-	./submit 10.130.154.69:8080 test/source_P.cpp $loopNum $sleepTimeSeconds $timeout > output_$i.txt 2>&1 &
+	./submit 10.157.3.213:8080 test/source_P.cpp $loopNum $sleepTimeSeconds $timeout > temp_files/output_$i.txt 2>&1 &
+#	nohup ./submit localhost:8080 test/source_P.cpp $loopNum $sleepTimeSeconds $timeout > temp_files/output_$i.txt 2>&1 &
+#ankur	./submit 192.168.0.103:8080 test/source_P.cpp $loopNum $sleepTimeSeconds $timeout > temp_files/output_$i.txt 2>&1 & 
+#	./submit 192.168.0.101:8080 test/source_P.cpp $loopNum $sleepTimeSeconds $timeout > temp_files/output_$i.txt 2>&1 &
+#	./submit 10.130.154.69:8080 test/source_P.cpp $loopNum $sleepTimeSeconds $timeout > temp_files/output_$i.txt 2>&1 &
 done
 
 wait
@@ -42,16 +42,16 @@ declare -a per_client_errorRequests
 for (( i = 0; i < $counter; i++ )); do
 
 
-	avg_resp_times[$i]=$(cat output_$i.txt | awk '/Average response time/ {print $0}' | awk -F: '{print $2;}')
-	success_counts[$i]=$(cat output_$i.txt | awk '/Number of successful responses/ {print $0}' | awk -F: '{print $2;}')
+	avg_resp_times[$i]=$(cat temp_files/output_$i.txt | awk '/Average response time/ {print $0}' | awk -F: '{print $2;}')
+	success_counts[$i]=$(cat temp_files/output_$i.txt | awk '/Number of successful responses/ {print $0}' | awk -F: '{print $2;}')
 
-	per_client_totalRequests[$i]=$( cat output_$i.txt | awk '/Individual client total requests/ {print $0}' | awk -F: '{print $2;}'  )
-	per_client_throughput[$i]=$( cat output_$i.txt | awk '/Individual client throughput/ {print $0}' | awk -F: '{print $2;}'  )
-	per_client_timeoutrequests[$i]=$( cat output_$i.txt | awk '/Individual client timeout requests/ {print $0}' | awk -F: '{print $2;}'  )
-	per_client_errorRequests[$i]=$( cat output_$i.txt | awk '/Individual client other error requests/ {print $0}' | awk -F: '{print $2;}'  )
+	per_client_totalRequests[$i]=$( cat temp_files/output_$i.txt | awk '/Individual client total requests/ {print $0}' | awk -F: '{print $2;}'  )
+	per_client_throughput[$i]=$( cat temp_files/output_$i.txt | awk '/Individual client throughput/ {print $0}' | awk -F: '{print $2;}'  )
+	per_client_timeoutrequests[$i]=$( cat temp_files/output_$i.txt | awk '/Individual client timeout requests/ {print $0}' | awk -F: '{print $2;}'  )
+	per_client_errorRequests[$i]=$( cat temp_files/output_$i.txt | awk '/Individual client other error requests/ {print $0}' | awk -F: '{print $2;}'  )
 
-	#acc_resp_times[$i]=$(cat output_$i.txt | awk '/Accumulated response time/ {print $0}' | awk -F: '{print $2;}')
-	#loop_times[$i]=$(cat output_$i.txt | awk '/Time taken for completing client loop/ {print $0}' | awk -F: '{print $2;}')
+	#acc_resp_times[$i]=$(cat temp_files/output_$i.txt | awk '/Accumulated response time/ {print $0}' | awk -F: '{print $2;}')
+	#loop_times[$i]=$(cat temp_files/output_$i.txt | awk '/Time taken for completing client loop/ {print $0}' | awk -F: '{print $2;}')
 
 done
 
@@ -103,7 +103,7 @@ overall_avg_resp_t=$(awk '{ if($1 == 0){print 0} else {print $2/$1} }' <<< "${su
 ############################
 #Print outputs:
 ############################
-rm output_*
+rm temp_files/output_*
 echo "Number of clients :"$numClients
 echo "Overall average response time (in ms) :"$overall_avg_resp_t
 
