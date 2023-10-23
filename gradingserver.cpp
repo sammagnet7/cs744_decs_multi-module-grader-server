@@ -1,5 +1,20 @@
 
-#include "gradingserver_worker.hpp"
+//#include "gradingserver_worker.hpp"
+#include "thread_pool.hpp"
+
+#include <iostream>
+#include <cstdlib>
+#include <cstring>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <arpa/inet.h>
+#include <vector>
+#include <stdint.h>
+#include<thread>
 
 using namespace std;
 
@@ -59,14 +74,15 @@ int getClientSocket(int binded_server_socket)
 int main(int argc, char *argv[])
 {
     // Describe Usage
-    if (argc != 2)
+    if (argc != 3)
     {
-        cerr << "Usage: " << argv[0] << " <port>" << endl;
+        cerr << "Usage: " << argv[0] << " <port> <thread_pool_size>" << endl;
         return 1;
     }
     // Extracting from cmd args
     int port = atoi(argv[1]);
     int server_socket = 0;
+    int thread_pool_size = atoi(argv[2]);
 
     // binding server socket
     if ((server_socket = bind_server_socket(port)) < 0)
@@ -80,7 +96,18 @@ int main(int argc, char *argv[])
     }
 
     cout << "Server listening on port: "<< port <<endl;
+
+
+    std::vector<std::thread> threads;
+    Thread_pool th_pool;
+
+    for (int i = 0; i < thread_pool_size; i++)
+    {
+        threads.push_back(std::thread(&Thread_pool::infinite_loop_func, &th_pool));
+    }
     
+    cout<< "Thread-pool created with number of threads: "<< thread_pool_size <<endl;
+
     while (true)
     {
         // gets new client socket upon 'Accept'
@@ -88,7 +115,8 @@ int main(int argc, char *argv[])
         if (client_socket < 0)
             continue;
 
-        std::thread(worker_handler, client_socket).detach();
+        th_pool.push(client_socket);
+        //std::thread(worker_handler, client_socket).detach();
 
     }
 

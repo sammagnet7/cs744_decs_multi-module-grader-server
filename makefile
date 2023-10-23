@@ -5,8 +5,8 @@ client-server: client server
 client: client.o fileio.o fileio.hpp
 	g++ -std=c++17 -w -o submit gradingclient.o fileio.o
 
-server: server.o fileio.o gradingserver_worker.o fileio.hpp gradingserver_worker.hpp
-	g++ -std=c++17 -w -o server gradingserver.o fileio.o gradingserver_worker.o
+server: server.o fileio.o gradingserver_worker.o thread_pool.o fileio.hpp gradingserver_worker.hpp thread_pool.hpp
+	g++ -std=c++17 -w -o server gradingserver.o fileio.o gradingserver_worker.o thread_pool.o
 
 client.o: gradingclient.cpp
 	g++ -std=c++17 -w -c gradingclient.cpp
@@ -19,6 +19,10 @@ fileio.o: fileio.cpp fileio.hpp
 
 gradingserver_worker.o: gradingserver_worker.cpp
 	g++ -std=c++17 -w -c gradingserver_worker.cpp
+
+thread_pool.o: thread_pool.cpp
+	g++ -std=c++17 -w -c thread_pool.cpp
+
 
 
 client-run:
@@ -34,5 +38,6 @@ server-run:
 .PHONY: clean
 
 clean:
-	@-rm submit server
-	@find . -type f -name "*.o" -exec rm {} \; -o -name "temp_file/*" -exec rm {} \;
+	-rm submit server
+	find . -type f -name "*.o" -exec rm {} \; -o -name "temp_files/*" -exec rm {} \;
+	rm temp_files/*
