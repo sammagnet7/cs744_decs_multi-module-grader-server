@@ -143,8 +143,8 @@ int connectsocketbyIpPort(string server_ip, int server_port, int timeout_seconds
 
     //set socket timeout
     struct timeval timeout;      
-    timeout.tv_sec = timeout_seconds;
-    timeout.tv_usec = 0;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = timeout_seconds* 1000000;
     
     if (setsockopt (client_socket, SOL_SOCKET, SO_SNDTIMEO, &timeout,
                 sizeof timeout) < 0)

@@ -2,7 +2,7 @@
 from subprocess import run, PIPE
 import matplotlib.pyplot as plt
 import time
-plt.interactive(False)
+#plt.interactive(False)
 
 
 minClients = int( input( 'Enter count of minimum number of clients: ' ) )
@@ -20,7 +20,7 @@ clients_vs_responseTime = []
 
 for count in range(minClients,maxClients+1,steps):
 
-	output = run(['./loadtest.sh', str(count),'5','0.5', '0.5'], stdout=PIPE).stdout.splitlines()
+	output = run(['./loadtest.sh', str(count),'5','0.5', '0.1'], stdout=PIPE).stdout.splitlines()
 
 	clients.append(int(count))
 	clients_vs_responseTime.append( float( str( output[1] ).split( ':' )[1].rstrip("'") ) )
