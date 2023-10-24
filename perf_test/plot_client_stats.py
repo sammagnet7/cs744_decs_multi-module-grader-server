@@ -2,6 +2,7 @@
 from subprocess import run, PIPE
 import matplotlib.pyplot as plt
 import time
+import socket
 #plt.interactive(False)
 
 
@@ -18,6 +19,12 @@ clients_vs_errReq = []
 
 clients_vs_responseTime = []
 
+server_ip='192.168.0.107'
+server_port = 12345
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket.connect((server_ip, server_port))
+
+
 for count in range(minClients,maxClients+1,steps):
 
 	output = run(['./loadtest.sh', str(count),'5','0.5', '0.1'], stdout=PIPE).stdout.splitlines()
@@ -31,6 +38,12 @@ for count in range(minClients,maxClients+1,steps):
 	clients_vs_errReq.append( float( str( output[5] ).split( ':' )[1].rstrip("'") ) )
 
 	time.sleep(0.1)
+	msg = f"Number of clients: {count}\n"
+	client_socket.send(msg.encode())
+
+msg = "exit\n"
+client_socket.send(msg.encode())
+client_socket.close()
 
 print(clients_vs_responseTime)	
 print(clients_vs_reqSent)

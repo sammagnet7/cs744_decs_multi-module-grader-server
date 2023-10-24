@@ -1,4 +1,4 @@
 .PHONY: clean
 
 clean:
-	rm temp_files/*
+	rm -rf temp_files

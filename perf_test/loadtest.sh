@@ -12,8 +12,11 @@ timeout=$4
 
 counter=$numClients
 
+mkdir  temp_files
 for (( i = 0; i < $counter; i++ )); do
-	../client_side/submit 10.157.3.213:8080 ../client_side/test/source_P.cpp $loopNum $sleepTimeSeconds $timeout > temp_files/output_$i.txt 2>&1 &
+	../client_side/submit 192.168.0.107:8080 ../client_side/test/source_P.cpp $loopNum $sleepTimeSeconds $timeout > temp_files/output_$i.txt 2>&1 & 
+#	../client_side/submit 10.157.3.213:8080 ../client_side/test/source_P.cpp $loopNum $sleepTimeSeconds $timeout > temp_files/output_$i.txt 2>&1 &
+#	../client_side/submit 10.130.154.66:8080 ../client_side/test/source_P.cpp $loopNum $sleepTimeSeconds $timeout > temp_files/output_$i.txt 2>&1 &
 #	../client_side/submit localhost:8080 ../client_side/test/source_P.cpp $loopNum $sleepTimeSeconds $timeout > temp_files/output_$i.txt 2>&1 &
 #ankur	../client_side/submit 192.168.0.103:8080 ../client_side/test/source_P.cpp $loopNum $sleepTimeSeconds $timeout > temp_files/output_$i.txt 2>&1 & 
 #	../client_side/submit 192.168.0.101:8080 ../client_side/test/source_P.cpp $loopNum $sleepTimeSeconds $timeout > temp_files/output_$i.txt 2>&1 &
@@ -103,7 +106,7 @@ overall_avg_resp_t=$(awk '{ if($1 == 0){print 0} else {print $2/$1} }' <<< "${su
 ############################
 #Print outputs:
 ############################
-rm temp_files/output_*
+rm -rf temp_files
 echo "Number of clients :"$numClients
 echo "Overall average response time (in ms) :"$overall_avg_resp_t
 
