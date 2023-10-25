@@ -1,6 +1,6 @@
 #!/bin/bash
 
-client_machine_path="soumikdutta@192.168.0.107:~/Downloads"
+client_machine_path="ankur@10.96.16.18:~/Downloads"
 
 #variable 
 averageCpuUtilization=0
@@ -12,7 +12,6 @@ mkdir temp_files
 log_file="temp_files/server_snapshot.log"
 nc_output_file="temp_files/server_snapshot_nc.log"
 
-mkdir temp_files
 while [ true ]; do
     COND=$(ps aux | grep "server 8080" | wc -l)
     if [ $COND -gt 1 ]; then
