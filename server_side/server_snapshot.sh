@@ -7,6 +7,7 @@ averageCpuUtilization=0
 averageActiveThreads=0
 count=0
 
+mkdir temp_files
 
 log_file="temp_files/server_snapshot.log"
 nc_output_file="temp_files/server_snapshot_nc.log"

@@ -5,6 +5,11 @@ import os
 
 plt.interactive(False)
 
+#Received file name
+
+server_snapshot_log = os.path.expanduser('~/Documents/server_snapshot.log')
+server_snapshot_nc_log = os.path.expanduser('~/Documents/server_snapshot_nc.log')
+
 
 # Create lists to store the data
 clients = []
@@ -51,7 +56,7 @@ averageNumberOfThreads = []
              
 #              cnt+=1
 
-with open('log.txt', 'r') as log_file, open('nc_output.txt', 'r') as nc_file:
+with open(server_snapshot_log, 'r') as log_file, open(server_snapshot_nc_log, 'r') as nc_file:
     log_lines = log_file.readlines()
     nc_lines = nc_file.readlines()
 
@@ -122,6 +127,7 @@ fig.tight_layout()
 plt.show()
 # #plt.savefig("graph.png", bbox_inches='tight')
 
-os.remove("~/Documents/server_snapshot*")
+os.remove(server_snapshot_log)
+os.remove(server_snapshot_nc_log)
 
 

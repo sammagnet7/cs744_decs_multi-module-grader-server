@@ -19,7 +19,7 @@ clients_vs_errReq = []
 
 clients_vs_responseTime = []
 
-server_ip='192.168.0.107'
+server_ip='10.130.154.66'
 server_port = 12345
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect((server_ip, server_port))
@@ -37,7 +37,7 @@ for count in range(minClients,maxClients+1,steps):
 	clients_vs_timeout.append( float( str( output[4] ).split( ':' )[1].rstrip("'") ) )
 	clients_vs_errReq.append( float( str( output[5] ).split( ':' )[1].rstrip("'") ) )
 
-	time.sleep(0.1)
+	time.sleep(2)
 	msg = f"Number of clients: {count}\n"
 	client_socket.send(msg.encode())
 
