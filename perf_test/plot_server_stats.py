@@ -106,16 +106,16 @@ print("averageNumberOfThreads:", averageNumberOfThreads)
 #Plotting graph:2 #
 ###################
 fig, axs = plt.subplots(1, 2)
-fig.suptitle('Autograding server performance analysis')
+fig.suptitle('Autograding server performance analysis : Server side')
 
 
 axs[0].plot(clients, averageNumberOfThreads, color='magenta', marker='o')
-axs[0].set(xlabel='Number of clients',ylabel='ThreadCnt')
-axs[0].set_title("Number of Clients vs ThreadCnt")
+axs[0].set(xlabel='Number of clients',ylabel='Average Thread counts')
+axs[0].set_title("Number of Clients vs Average Thread counts")
 
 axs[1].plot(clients, averageCpuUtilization, color='black', marker='o')
-axs[1].set(xlabel='Number of clients',ylabel='CpuUtil')
-axs[1].set_title("Number of Clients vs CpuUtil")
+axs[1].set(xlabel='Number of clients',ylabel='Cpu Utilization')
+axs[1].set_title("Number of Clients vs Cpu Utilization")
 
 
 
