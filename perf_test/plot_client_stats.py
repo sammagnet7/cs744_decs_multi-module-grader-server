@@ -3,8 +3,10 @@ from subprocess import run, PIPE
 import matplotlib.pyplot as plt
 import time
 import socket
-#plt.interactive(False)
 
+##Give the server ip and port to connect to get the Server side statistics
+server_ip='10.157.3.213'
+server_port = 12345
 
 minClients = int( input( 'Enter count of minimum number of clients: ' ) )
 maxClients = int( input( 'Enter count of maximum number of clients: ' ) )
@@ -19,60 +21,47 @@ clients_vs_errReq = []
 
 clients_vs_responseTime = []
 
-server_ip='10.130.154.66'
-server_port = 12345
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect((server_ip, server_port))
+try: 
+	client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	client_socket.settimeout(1)
+	client_socket.connect((server_ip, server_port))
+except Exception as e:
+	print(e)
+	print("Server side stats analyser is down. Also check server ip and port. Meanwhile ignoring and proceeding...")
 
 
 for count in range(minClients,maxClients+1,steps):
 
-	output = run(['./loadtest.sh', str(count),'5','0.5', '0.1'], stdout=PIPE).stdout.splitlines()
+	output = run(['./loadtest.sh', str(count),'10','0.5', '5'], stdout=PIPE).stdout.splitlines()
 
 	clients.append(int(count))
-	clients_vs_responseTime.append( float( str( output[1] ).split( ':' )[1].rstrip("'") ) )
+	clients_vs_responseTime.append( float( str( output[2] ).split( ':' )[1].rstrip("'") ) )
 
-	clients_vs_reqSent.append( float( str( output[2] ).split( ':' )[1].rstrip("'") ) )
-	clients_vs_throughput.append( float( str( output[3] ).split( ':' )[1].rstrip("'") ) )
-	clients_vs_timeout.append( float( str( output[4] ).split( ':' )[1].rstrip("'") ) )
-	clients_vs_errReq.append( float( str( output[5] ).split( ':' )[1].rstrip("'") ) )
+	clients_vs_reqSent.append( float( str( output[3] ).split( ':' )[1].rstrip("'") ) )
+	clients_vs_throughput.append( float( str( output[4] ).split( ':' )[1].rstrip("'") ) )
+	clients_vs_timeout.append( float( str( output[5] ).split( ':' )[1].rstrip("'") ) )
+	clients_vs_errReq.append( float( str( output[6] ).split( ':' )[1].rstrip("'") ) )
 
 	time.sleep(2)
 	msg = f"Number of clients: {count}\n"
-	client_socket.send(msg.encode())
 
+	try: 
+		client_socket.send(msg.encode())
+	except Exception as e:
+		pass
 msg = "exit\n"
-client_socket.send(msg.encode())
-client_socket.close()
+
+try: 
+	client_socket.send(msg.encode())
+	client_socket.close()
+except Exception as e:
+	pass
 
 print(clients_vs_responseTime)	
 print(clients_vs_reqSent)
 print(clients_vs_throughput)
 print(clients_vs_timeout)
 print(clients_vs_errReq)
-
-###################
-#Plotting graph:1 #
-###################
-
-# fig, (ax1, ax2) = plt.subplots(1, 2)
-# fig.suptitle('Autograding server performance analysis')
-
-
-# ax1.plot(clients, clients_vs_throughput, color='blue', marker='o')
-# ax1.set(xlabel='Number of clients', ylabel='Throughput')
-# ax1.set_title("Number of Clients vs Throughput")
-
-
-# ax2.plot(clients, clients_vs_responseTime,color='red', marker='o')
-# ax2.set(xlabel='Number of clients', ylabel='Response time')
-# ax2.set_title("Number of Clients vs Response time")
-
-# ax1.grid(color = 'green', linestyle = '--', linewidth = 0.5)
-# ax2.grid(color = 'green', linestyle = '--', linewidth = 0.5)
-
-# plt.show()
-#plt.savefig("graph.png", bbox_inches='tight')
 
 
 ###################
