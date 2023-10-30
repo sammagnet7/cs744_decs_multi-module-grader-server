@@ -8,8 +8,8 @@ import socket
 server_ip='10.157.3.213'
 server_port = 12345
 
-minClients = int( input( 'Enter count of minimum number of clients: ' ) )
-maxClients = int( input( 'Enter count of maximum number of clients: ' ) )
+minClients = int( input( 'Enter count of minimum number(included) of clients: ' ) )
+maxClients = int( input( 'Enter count of maximum number(included) of clients: ' ) )
 steps = int( input( 'Enter increasing steps: ' ) )
 
 clients = []
@@ -27,12 +27,12 @@ try:
 	client_socket.connect((server_ip, server_port))
 except Exception as e:
 	print(e)
-	print("Server side stats analyser is down. Also check server ip and port. Meanwhile ignoring and proceeding...")
+	print("SERVER side STATS ANALYZER is down. Also check server Ip and Port. Meanwhile ignoring and proceeding without that...")
 
 
-for count in range(minClients,maxClients+1,steps):
+for count in range(minClients,maxClients+steps,steps):
 
-	output = run(['./loadtest.sh', str(count),'10','0.5', '5'], stdout=PIPE).stdout.splitlines()
+	output = run(['./loadtest.sh', str(count),'20','0.5', '3'], stdout=PIPE).stdout.splitlines()
 
 	clients.append(int(count))
 	clients_vs_responseTime.append( float( str( output[2] ).split( ':' )[1].rstrip("'") ) )

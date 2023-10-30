@@ -17,10 +17,10 @@
 using namespace std;
 
 double accumulated_time = 0;
-int totalCount=0;
-int successCount = 0;
-int timeout_count=0;
-int other_err_count=0;
+double totalCount=0;
+double successCount = 0;
+double timeout_count=0;
+double other_err_count=0;
 
 //<<<<<<<<<<<<<<<============== Utility methods declarations below =============>>>>>>>>>>>>>>>>
 //
@@ -172,11 +172,11 @@ int connectsocketbyIpPort(string server_ip, int server_port, float timeout_secon
 
     if (connect(client_socket, (struct sockaddr *)&target_server_address, sizeof(target_server_address)) < 0)
     {
-        if( errno == ETIMEDOUT || errno == EWOULDBLOCK || errno == EAGAIN ){
-            timeout_count++;
-            other_err_count--;
-            cerr<<"Timeout while CONNECT"<<endl;
-        }
+        // if( errno == ETIMEDOUT || errno == EWOULDBLOCK || errno == EAGAIN ){
+        //     timeout_count++;
+        //     other_err_count--;
+        //     cerr<<"Timeout while CONNECT"<<endl;
+        // }
         cerr<<"Error while: <connecting to server>"<<endl;
         return -1;
     }
@@ -274,7 +274,7 @@ int main(int argc, char *argv[])
     cout << "Accumulated response time (in ms) :" << accumulated_time << endl;
     cout << "Average response time (in ms) :" << avgRespTime << endl;
 
-    //request sent should be = throughput + timeout + error rate
+    //request sent should be == throughput + timeout + error rate
     cout << "Number of total requests sent :" << totalCount << endl; //total requests
     cout << "Number of successful responses :" << successCount << endl; //throughput
     cout << "Number of timeout requests :" << timeout_count << endl; //timeout

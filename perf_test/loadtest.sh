@@ -98,7 +98,7 @@ overall_timeoutrequests=$sum_of_timeoutrequests
 overall_sum_of_errRequets=$sum_of_errRequets
 
 
-overall_avg_resp_t=$(awk '{ if($1 == 0){print 0} else {print $2/$1} }' <<< "${sum_of_success} ${sum_of_resp_time}" )
+overall_avg_resp_t=$( awk '{ if($2 == 0){print 0} else {print $1/$2} }' <<< "${sum_of_resp_time} ${sum_of_success}" )
 
 
 ############################
