@@ -1,11 +1,16 @@
 #!/bin/bash
-#set -x #for bash debugging
+
+#Enter the server ip:port to submit requests
+serverip_port=10.157.3.213:8080
+
+#for bash debugging
+#set -x 
+
+
 if [ $# -ne 4 ]; then
 	echo "Usage: $0 <numClients> <loopNum> <sleepTimeSeconds> <timeout-seconds>"
 	exit
 fi
-#Enter the server ip:port to submit requests
-serverip_port=10.157.3.213:8080
 
 numClients=$1
 loopNum=$2
@@ -13,6 +18,7 @@ sleepTimeSeconds=$3
 timeout=$4
 
 echo "args passed: #clients: "$numClients" #loops: "$loopNum" sleep: "$sleepTimeSeconds" timeout: "$timeout
+
 mkdir  temp_files
 
 counter=$numClients
