@@ -33,7 +33,7 @@ except Exception as e:
 
 for count in range(minClients,maxClients+steps,steps):
 
-	output = run(['./loadtest.sh', str(count),'20','0.5', '3'], stdout=PIPE).stdout.splitlines()
+	output = run(['./loadtest.sh', str(count),'20','0.5', '10'], stdout=PIPE).stdout.splitlines()
 
 	clients.append(int(count))
 	clients_vs_responseTime.append( float( str( output[2] ).split( ':' )[1].rstrip("'") ) )

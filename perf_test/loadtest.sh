@@ -17,7 +17,7 @@ loopNum=$2
 sleepTimeSeconds=$3
 timeout=$4
 
-echo "args passed: #clients: "$numClients" #loops: "$loopNum" sleep: "$sleepTimeSeconds" timeout: "$timeout
+echo "Arguments passed: #clients: "$numClients" #loops: "$loopNum" sleep: "$sleepTimeSeconds" timeout: "$timeout
 
 mkdir  temp_files
 
