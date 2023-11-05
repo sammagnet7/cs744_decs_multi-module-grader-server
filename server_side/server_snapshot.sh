@@ -1,16 +1,17 @@
 #!/bin/bash
 
-client_machine_path="ankur@10.96.16.18:~/Downloads"
+client_machine_path="ankur@10.96.16.18:~/Documents"
 
 #variable 
 averageCpuUtilization=0
 averageActiveThreads=0
 count=0
 
-mkdir temp_files
+mkdir -p temp_files
 
 log_file="temp_files/server_snapshot.log"
 nc_output_file="temp_files/server_snapshot_nc.log"
+avg_q_len_file="temp_files/avgQ.log"
 
 while [ true ]; do
     COND=$(ps aux | grep "server 8080" | wc -l)
@@ -30,7 +31,7 @@ while [ true ]; do
     else
     	echo "Starting transferring the log files to the client machine....."
         # Copy log.txt to a remote location using scp
-        scp "$log_file" "$nc_output_file" $client_machine_path
+        scp "$log_file" "$nc_output_file" "$avg_q_len_file" $client_machine_path
         pkill -f "nc -l -p 12345"
         rm -rf temp_files
         break

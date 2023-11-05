@@ -107,7 +107,10 @@ int main(int argc, char *argv[])
     }
     
     cout<< "Thread-pool created with number of threads: "<< thread_pool_size <<endl;
-
+    
+    std::thread q_length_thread(&Thread_pool::countQueueLength,&th_pool);
+    q_length_thread.detach();
+    
     while (true)
     {
         // gets new client socket upon 'Accept'
@@ -117,7 +120,6 @@ int main(int argc, char *argv[])
 
         th_pool.push(client_socket);
         //std::thread(worker_handler, client_socket).detach();
-
     }
 
     close(server_socket);
