@@ -23,3 +23,6 @@ thread_pool.o: thread_pool.cpp
 clean:
 	-rm server
 	find . -type f -name "*.o" -exec rm {} \;
+	find . -type f -name "*.log" -exec rm {} \;
+	find . -type f -name "received*" -exec rm {} \;
+	rm -rf temp_files/

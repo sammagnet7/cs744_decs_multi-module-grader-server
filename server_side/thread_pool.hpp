@@ -11,16 +11,16 @@ class Thread_pool
 {
 
 public:
+    int Q_MAX_SIZE=80;
 
     Thread_pool();
     ~Thread_pool();
 
-    int count = 0;
-    int q_length = 0;
     void push(int func);
     //void done();
     void infinite_loop_func();
-    void countQueueLength();
+    void logQueueLength();
+    int getCurrQueueLen();
 
     
 private:

@@ -201,11 +201,12 @@ void worker(int *sockfd)
     try
     {
         cout << "------------Client starts------------------------" << endl;
-        cout << "Running thead id: : " << std::this_thread::get_id() << endl;
+        cout << "Running thread id: : " << std::this_thread::get_id() << endl;
         // Connects client to the server on the specified host-port
         if ((client_socket = connectsocketbyIpPort(server_ip, server_port, timeout_seconds)) < 0)
             throw client_socket;
 
+        //Puttng value into pointer
         *sockfd = client_socket;
         // Reads the file into a String
         string source_code = read_file(file_name);
@@ -230,8 +231,6 @@ void worker(int *sockfd)
 
         cout << server_response << endl;
 
-        // accumulated_time += tx_Rx_time;
-        // successCount++;
         isSuccess = true;
     }
     catch (...)
@@ -274,21 +273,22 @@ int main(int argc, char *argv[])
     auto LStart = chrono::high_resolution_clock::now();
     while (loopNum--)
     {
-        int client_socket=0;
+        int *client_socket= new int;
 
         /* Creating threads */
-        std::thread th(worker, &client_socket);
+        std::thread th(worker, client_socket);
         cout << "created thread: " << th.get_id() << endl;
 
         auto future = std::async(std::launch::async, &std::thread::join, &th);
         if (future.wait_for(std::chrono::milliseconds((int)timeout_seconds * 1000)) == std::future_status::timeout)
         {
-            /* do something, if thread has not terminated within time */
-            cout << "Timedout" << endl;
-            timeout_count++;
+            /* do things, if thread has not terminated within time */
             isTimedOut = true;
-            cout<<"Killing client socket after getting timeout: "<<client_socket<<endl;
-            close(client_socket);
+            close(*client_socket);
+            cout << "Request Timedout" << endl;
+            timeout_count++;
+            cout<<"Killing client socket after getting timeout: "<<(*client_socket)<<endl;
+            close(*client_socket);
         }
         else
         {

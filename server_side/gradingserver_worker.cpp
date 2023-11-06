@@ -117,8 +117,9 @@ string run_prog(string prog, string client_socket, vector<string>& files_to_remo
 
  
     // otherwise Execute program
+    string timeout = "timeout --foreground 1m";
     string prog_output_filename = "prog_output_"+client_socket+".log";
-    string prog_run_command = "{ ./"+obj_filename+"; } > "+prog_output_filename+" 2>&1";
+    string prog_run_command = "{ "+timeout+" ./"+obj_filename+"; } > "+prog_output_filename+" 2>&1";
     int runtime_status = system(prog_run_command.c_str());
 
     // read the program's output from temporary file
@@ -129,6 +130,8 @@ string run_prog(string prog, string client_socket, vector<string>& files_to_remo
     if (runtime_status != 0)
     {
         // RUNTIME__ERROR
+        if(runtime_status == 31744)
+            run_output="Timeout happened while executing the submitted code";
         response = "RUNTIME ERROR\nError code=" + to_string(runtime_status) + "\n" + run_output + "\n";
         return response;
     }

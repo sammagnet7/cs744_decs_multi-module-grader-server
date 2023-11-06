@@ -30,10 +30,13 @@ except Exception as e:
 	print(e)
 	print("SERVER side STATS ANALYZER is down. Also check server Ip and Port. Meanwhile ignoring and proceeding without that...")
 
+sleep_timer=1
 
 for count in range(minClients,maxClients+steps,steps):
 
-	output = run(['./loadtest.sh', str(count),'20','0.5', '10'], stdout=PIPE).stdout.splitlines()
+	time.sleep(sleep_timer)
+	sleep_timer=(count/5)
+	output = run(['./loadtest.sh', str(count),'10','1', '10'], stdout=PIPE).stdout.splitlines()
 
 	clients.append(int(count))
 	clients_vs_responseTime.append( float( str( output[2] ).split( ':' )[1].rstrip("'") ) )
@@ -43,9 +46,7 @@ for count in range(minClients,maxClients+steps,steps):
 	clients_vs_timeout.append( float( str( output[5] ).split( ':' )[1].rstrip("'") ) )
 	clients_vs_errReq.append( float( str( output[6] ).split( ':' )[1].rstrip("'") ) )
 
-	time.sleep(2)
 	msg = f"Number of clients: {count}\n"
-
 	try: 
 		client_socket.send(msg.encode())
 	except Exception as e:
@@ -66,7 +67,7 @@ print(clients_vs_errReq)
 
 
 ###################
-#Plotting graph:2 #
+#Plotting graph: #
 ###################
 fig, axs = plt.subplots(2, 3)
 fig.suptitle('Autograding server performance analysis')

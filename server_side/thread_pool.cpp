@@ -49,7 +49,11 @@ void Thread_pool::infinite_loop_func()
     }
 }
 
-void Thread_pool::countQueueLength(){
+int Thread_pool::getCurrQueueLen(){
+    return task_queue.size();
+}
+
+void Thread_pool::logQueueLength(){
     
     std::string directoryPath = "temp_files";
     std::string filePath = "temp_files/avgQ.log";
@@ -66,21 +70,24 @@ void Thread_pool::countQueueLength(){
         std::string q_size_output = "";
         
         while (true) {
-            auto ms = std::chrono::high_resolution_clock::now();
-            std::time_t now_c = std::chrono::system_clock::to_time_t(ms);
-            char time[100]; // Buffer to hold the formatted date and time
-            std::strftime(time, sizeof(time), "%H:%M:%S", std::localtime(&now_c));
+
+            auto sys_time = std::chrono::high_resolution_clock::now();
+            std::time_t sys_time_form = std::chrono::system_clock::to_time_t(sys_time);
+
+            char curr_time[100]; // Buffer to hold the formatted time
+            std::strftime(curr_time, sizeof(curr_time), "%H:%M:%S", std::localtime(&sys_time_form));
 
             int q_length = task_queue.size();
+            if(q_length==0)
+                continue;
 
-            string t(time);
+            string curr_time_(curr_time);
             
-            std::string str = t + " " + std::to_string(q_length);
+            std::string q_line = curr_time_ + " " + std::to_string(q_length);
 
-            file << str << std::endl;
-            // std::cout << str << std::endl;
+            file << q_line << std::endl;
 
-            std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+            std::this_thread::sleep_for(std::chrono::seconds(5));
         }
 
         file.close(); // File closed after the loop finishes writing data

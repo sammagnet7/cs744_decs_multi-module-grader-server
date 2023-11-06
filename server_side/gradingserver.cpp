@@ -19,7 +19,7 @@
 using namespace std;
 
 
-const int MAX_QUEUE_SIZE = 50;
+const int MAX_BACKLOG_QUEUE_SIZE = 50;
 
 
 //<<<<<<<<<<<<<<<=============== Utility methods definitions below =============>>>>>>>>>>>>>>>>
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
         return server_socket;
 
     // Server listens on the socket. Here we are telling the max number of clients that can wait in the backlog queue until they are assigned with client specific socket
-    if( listen(server_socket, MAX_QUEUE_SIZE) < 0 ){
+    if( listen(server_socket, MAX_BACKLOG_QUEUE_SIZE) < 0 ){
         perror("Listen failed");
         close(server_socket);
         return -1;
@@ -108,8 +108,8 @@ int main(int argc, char *argv[])
     
     cout<< "Thread-pool created with number of threads: "<< thread_pool_size <<endl;
     
-    std::thread q_length_thread(&Thread_pool::countQueueLength,&th_pool);
-    q_length_thread.detach();
+    std::thread q_len_logging_th(&Thread_pool::logQueueLength,&th_pool);
+    q_len_logging_th.detach();
     
     while (true)
     {
@@ -118,8 +118,11 @@ int main(int argc, char *argv[])
         if (client_socket < 0)
             continue;
 
-        th_pool.push(client_socket);
-        //std::thread(worker_handler, client_socket).detach();
+        if(th_pool.getCurrQueueLen() < th_pool.Q_MAX_SIZE)
+            th_pool.push(client_socket);
+        else
+            close(client_socket);
+            //shutdown(client_socket, SHUT_RDWR);
     }
 
     close(server_socket);
