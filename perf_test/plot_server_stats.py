@@ -18,18 +18,15 @@ averageNumberOfThreads = []
 averageQueueLength = []
 
 
-with open(server_snapshot_log, 'r') as log_file, open(server_snapshot_nc_log, 'r') as nc_file, open(server_queue_size_log,'r') as q_size_log:
+with open(server_snapshot_log, 'r') as log_file, open(server_snapshot_nc_log, 'r') as nc_file:
     log_lines = log_file.readlines()
     nc_lines = nc_file.readlines()
-    q_lines = q_size_log.readlines()
 
     log_lines = [line.strip() for line in log_lines]
     nc_lines = [line.strip() for line in nc_lines]
-    q_lines = [line.strip() for line in q_lines]
 
 
     log_line_iterator=0
-    avg_q_iterator = 0
     
     #iteration in netcat file
     for n in nc_lines:
@@ -38,11 +35,9 @@ with open(server_snapshot_log, 'r') as log_file, open(server_snapshot_nc_log, 'r
             clients.append(int(client_parts[1].strip()))
             
             cnt_log_line=0
-            cnt_q_line=0
             
             avg_cpu=0.0
             avg_thread=0.0
-            avg_queue_length=0.0
             
             #iteration in log file
             while log_line_iterator<len(log_lines):
@@ -62,26 +57,8 @@ with open(server_snapshot_log, 'r') as log_file, open(server_snapshot_nc_log, 'r
                 log_line_iterator+=1
                 
                 
-                
-            #iteration in averageQ_log file
-            while avg_q_iterator<len(q_lines):
-                parts = q_lines[avg_q_iterator].split()
-                # Extract the three parts
-                timestamp = parts[0]
-                qlength = parts[1]
-
-                if timestamp<=prev:
-                    avg_queue_length+=int(qlength.strip())
-                    cnt_q_line+=1
-                else:
-                    break
-                # print(timestamp,thread,cpu_utilization)
-                avg_q_iterator+=1
-                
-                
             averageCpuUtilization.append(avg_cpu/cnt_log_line)
             averageNumberOfThreads.append(avg_thread/cnt_log_line)
-            averageQueueLength.append(avg_queue_length/cnt_q_line)
 
         elif n=="exit":
             break
@@ -92,7 +69,6 @@ with open(server_snapshot_log, 'r') as log_file, open(server_snapshot_nc_log, 'r
 # Now you can use the collected data to plot the graphs
 print("averageCpuUtilization:", averageCpuUtilization)
 print("averageNumberOfThreads:", averageNumberOfThreads)
-print("averageQueueLengths:",averageQueueLength)
 
 
 
@@ -101,21 +77,18 @@ print("averageQueueLengths:",averageQueueLength)
 ###################
 
 
-fig, axs = plt.subplots(3,sharex=True, sharey=True)
+fig, axs = plt.subplots(2,sharex=True, sharey=True)
 fig.suptitle("Number of clients")
 axs[0].plot(clients,averageNumberOfThreads, color='magenta', marker='o')
 axs[1].plot(clients,averageCpuUtilization, color='black', marker='o')
-axs[2].plot(clients,averageQueueLength, color='red', marker='o')
 
 axs[0].set(ylabel='Average Thread counts')
 axs[1].set(ylabel='Cpu Utilization')
-axs[2].set(ylabel='Average Queue Length')
 
 
 
 axs[0].grid(color = 'green', linestyle = '--', linewidth = 0.5)
 axs[1].grid(color = 'green', linestyle = '--', linewidth = 0.5)
-axs[2].grid(color = 'green', linestyle = '--', linewidth = 0.5)
 
 fig.tight_layout()
 
@@ -124,5 +97,4 @@ plt.show()
 
 os.remove(server_snapshot_log)
 os.remove(server_snapshot_nc_log)
-os.remove(server_queue_size_log)
 

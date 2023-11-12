@@ -1,6 +1,5 @@
 
-//#include "gradingserver_worker.hpp"
-#include "thread_pool.hpp"
+#include "gradingserver_worker.hpp"
 
 #include <iostream>
 #include <cstdlib>
@@ -74,15 +73,14 @@ int getClientSocket(int binded_server_socket)
 int main(int argc, char *argv[])
 {
     // Describe Usage
-    if (argc != 3)
+    if (argc != 2)
     {
-        cerr << "Usage: " << argv[0] << " <port> <thread_pool_size>" << endl;
+        cerr << "Usage: " << argv[0] << " <port>" << endl;
         return 1;
     }
     // Extracting from cmd args
     int port = atoi(argv[1]);
     int server_socket = 0;
-    int thread_pool_size = atoi(argv[2]);
 
     // binding server socket
     if ((server_socket = bind_server_socket(port)) < 0)
@@ -96,20 +94,6 @@ int main(int argc, char *argv[])
     }
 
     cout << "Server listening on port: "<< port <<endl;
-
-
-    std::vector<std::thread> threads;
-    Thread_pool th_pool;
-
-    for (int i = 0; i < thread_pool_size; i++)
-    {
-        threads.push_back(std::thread(&Thread_pool::infinite_loop_func, &th_pool));
-    }
-    
-    cout<< "Thread-pool created with number of threads: "<< thread_pool_size <<endl;
-    
-    std::thread q_len_logging_th(&Thread_pool::logQueueLength,&th_pool);
-    q_len_logging_th.detach();
     
     while (true)
     {
@@ -118,11 +102,7 @@ int main(int argc, char *argv[])
         if (client_socket < 0)
             continue;
 
-        if(th_pool.getCurrQueueLen() < th_pool.Q_MAX_SIZE)
-            th_pool.push(client_socket);
-        else
-            close(client_socket);
-            //shutdown(client_socket, SHUT_RDWR);
+        std::thread(worker_handler, client_socket).detach();
     }
 
     close(server_socket);
