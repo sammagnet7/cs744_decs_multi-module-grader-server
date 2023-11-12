@@ -74,11 +74,14 @@ void Thread_pool::logQueueLength(){
         
         while (true) {
 
-            auto sys_time = std::chrono::high_resolution_clock::now();
-            std::time_t sys_time_form = std::chrono::system_clock::to_time_t(sys_time);
+
+            auto timenow = chrono::system_clock::to_time_t(chrono::system_clock::now()); 
+            
+            // auto sys_time = std::chrono::high_resolution_clock::now();
+            // std::time_t sys_time_form = std::chrono::system_clock::to_time_t(sys_time);
 
             char curr_time[100]; // Buffer to hold the formatted time
-            std::strftime(curr_time, sizeof(curr_time), "%H:%M:%S", std::localtime(&sys_time_form));
+            std::strftime(curr_time, sizeof(curr_time), "%H:%M:%S", std::localtime(&timenow));
 
             int q_length = getCurrQueueLen();
             if(q_length==0)
