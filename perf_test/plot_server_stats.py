@@ -9,13 +9,11 @@ plt.interactive(False)
 
 server_snapshot_log = os.path.expanduser('~/Documents/server_snapshot.log')
 server_snapshot_nc_log = os.path.expanduser('~/Documents/server_snapshot_nc.log')
-server_queue_size_log = os.path.expanduser('~/Documents/avgQ.log')
 
 # Create lists to store the data
 clients = []
 averageCpuUtilization = []
 averageNumberOfThreads = []
-averageQueueLength = []
 
 
 with open(server_snapshot_log, 'r') as log_file, open(server_snapshot_nc_log, 'r') as nc_file:
