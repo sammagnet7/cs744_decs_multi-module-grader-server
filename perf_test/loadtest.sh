@@ -57,7 +57,7 @@ for (( i = 0; i < $counter; i++ )); do
 	per_client_errorRequests[$i]=$( cat temp_files/output_$i.txt | awk '/Individual client other error requests/ {print $0}' | awk -F: '{print $2;}'  )
 
 	#acc_resp_times[$i]=$(cat temp_files/output_$i.txt | awk '/Accumulated response time/ {print $0}' | awk -F: '{print $2;}')
-	#loop_times[$i]=$(cat temp_files/output_$i.txt | awk '/Time taken for completing client loop/ {print $0}' | awk -F: '{print $2;}')
+	#loop_times[$i]=$(cat temp_files/output_$i.txt | awk '/Turn Around Time or loop time/ {print $0}' | awk -F: '{print $2;}')
 
 done
 
@@ -113,7 +113,7 @@ overall_avg_resp_t=$( awk '{ if($2 == 0){print 0} else {print $1/$2} }' <<< "${s
 rm -rf temp_files
 
 echo "Number of clients :"$numClients
-echo "Overall average response time (in ms) :"$overall_avg_resp_t
+echo "Overall average response time (in sec) :"$overall_avg_resp_t
 
 echo "Overall requests sent per sec:"$overall_totRequests
 echo "Overall throughput per sec:"$overall_throughput

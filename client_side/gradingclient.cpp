@@ -22,31 +22,8 @@ using namespace std;
 string server_ip;
 int server_port;
 string file_name;
-int loopNum;
-float sleepTime_sec;
 float timeout_seconds;
 
-bool isSuccess = false;
-bool isTimedOut = false;
-double accumulated_time = 0;
-double tx_Rx_time = 0;
-double totalCount = 0;
-double successCount = 0;
-double timeout_count = 0;
-double other_err_count = 0;
-
-//<<<<<<<<<<<<<<<============== Utility methods declarations below =============>>>>>>>>>>>>>>>>
-//
-//<<<<<<<<<<<<<<<===============================================================>>>>>>>>>>>>>>>>
-
-// receives all incoming data associated with given socket into the pointed string
-int receiveall(int client_socket, string &data);
-
-// sends all the data stored in the pointed char buffer to the specified socket
-int sendall(int socket, string buf, int datalen);
-
-// makes the CONNECT call from client end and returns the connected socket id upon successful
-int connectsocketbyIpPort(string server_ip, int server_port, float timeout_seconds);
 
 //<<<<<<<<<<<<<<<=============== Utility methods definitions below =============>>>>>>>>>>>>>>>>
 //
@@ -149,7 +126,7 @@ int sendall(int socket, string buf, int datalen)
 }
 
 // Makes the CONNECT call from client end and returns the connected socket id upon successful
-int connectsocketbyIpPort(string server_ip, int server_port, float timeout_seconds)
+int connectsocketbyIpPort(string server_ip, int server_port)
 {
     int client_socket = socket(PF_INET, SOCK_STREAM, 0);
     if (client_socket < 0)
@@ -158,18 +135,18 @@ int connectsocketbyIpPort(string server_ip, int server_port, float timeout_secon
         return -1;
     }
 
-    // set socket timeout
-    //  struct timeval timeout;
-    //  timeout.tv_sec = (int)timeout_seconds;
-    //  timeout.tv_usec = (timeout_seconds - timeout.tv_sec) * 1000000;
+    //set socket timeout
+     struct timeval timeout;
+     timeout.tv_sec = (int)timeout_seconds;
+     timeout.tv_usec = (timeout_seconds - timeout.tv_sec) * 1000000;
 
-    // if (setsockopt (client_socket, SOL_SOCKET, SO_SNDTIMEO, &timeout,
-    //             sizeof timeout) < 0)
-    //     perror("setsockopt for SENDTIMO failed\n");
+    if (setsockopt (client_socket, SOL_SOCKET, SO_SNDTIMEO, &timeout,
+                sizeof timeout) < 0)
+        perror("setsockopt for SENDTIMO failed\n");
 
-    // if (setsockopt (client_socket, SOL_SOCKET, SO_RCVTIMEO, &timeout,
-    //             sizeof timeout) < 0)
-    //     perror("setsockopt RCVTIMO failed\n");
+    if (setsockopt (client_socket, SOL_SOCKET, SO_RCVTIMEO, &timeout,
+                sizeof timeout) < 0)
+        perror("setsockopt RCVTIMO failed\n");
 
     // connect socket
     struct sockaddr_in target_server_address;
@@ -195,18 +172,18 @@ int connectsocketbyIpPort(string server_ip, int server_port, float timeout_secon
     return client_socket;
 }
 
-void worker(int *sockfd)
+void worker(int *sockfd, bool *_isSuccess, bool *_isTimedOut, double *_tx_Rx_time)
 {
     int client_socket = 0;
     try
     {
-        cout << "------------Client starts------------------------" << endl;
+        cout << "-----Worker starts-----" << endl;
         cout << "Running thread id: : " << std::this_thread::get_id() << endl;
         // Connects client to the server on the specified host-port
-        if ((client_socket = connectsocketbyIpPort(server_ip, server_port, timeout_seconds)) < 0)
+        if ((client_socket = connectsocketbyIpPort(server_ip, server_port)) < 0)
             throw client_socket;
 
-        //Puttng value into pointer
+        // Puttng value into pointer
         *sockfd = client_socket;
         // Reads the file into a String
         string source_code = read_file(file_name);
@@ -227,17 +204,19 @@ void worker(int *sockfd)
         auto Trecv = chrono::high_resolution_clock::now();
 
         // Calculating total time taken for transmit and receive.
-        tx_Rx_time = chrono::duration_cast<chrono::milliseconds>(Trecv - Tsend).count();
+        *_tx_Rx_time = chrono::duration_cast<chrono::milliseconds>(Trecv - Tsend).count();
 
         cout << server_response << endl;
 
-        isSuccess = true;
+        *_isSuccess = true;
+        cout << "SUCCESS" << endl;
     }
     catch (...)
-    {
-        if (!isTimedOut)
+    {   
+        *_isSuccess = false;
+        // if this worker thread is already timed out by the main thread and detached, don't print anything
+        if (!(*_isTimedOut))
         {
-            other_err_count++;
             // catches any exceptions
             cout << "EXCEPTION occured inside loop" << endl;
             perror("Exception is: ");
@@ -263,61 +242,82 @@ int main(int argc, char *argv[])
     server_ip = strtok(argv[1], ":");
     server_port = stoi(strtok(NULL, ":"));
     file_name = argv[2];
-    loopNum = stoi(argv[3]);
-    sleepTime_sec = stoi(argv[4]);
     timeout_seconds = stof(argv[5]);
+    
+    int loopNum = stoi(argv[3]);
+    float sleepTime_sec = stof(argv[4]);
 
-    totalCount = loopNum;
+    double totalCount = loopNum;
+    double successCount = 0;
+    double timeout_count = 0;
+    double other_err_count = 0;
+    double accumulated_time = 0;
 
     // Note: LOOP START time
     auto LStart = chrono::high_resolution_clock::now();
     while (loopNum--)
     {
-        int *client_socket= new int;
+        cout << "------------New Loop starts------------------------" << endl;
+        cout<<"Main Thread id: "<< std::this_thread::get_id() <<endl;
+        cout<<"Loop id "<<loopNum<<endl;
+        bool *_isSuccess = new bool(false);
+        bool *_isTimedOut = new bool(false);
+
+        double *_tx_Rx_time = new double(0);
+        int *client_socket = new int();
 
         /* Creating threads */
-        std::thread th(worker, client_socket);
+        std::thread th(worker, client_socket, _isSuccess, _isTimedOut, _tx_Rx_time);
         cout << "created thread: " << th.get_id() << endl;
 
         auto future = std::async(std::launch::async, &std::thread::join, &th);
-        if (future.wait_for(std::chrono::milliseconds((int)timeout_seconds * 1000)) == std::future_status::timeout)
+        if (future.wait_for(std::chrono::milliseconds((int) (timeout_seconds * 1000) )) == std::future_status::timeout)
         {
             /* do things, if thread has not terminated within time */
-            isTimedOut = true;
+            *_isTimedOut = true;
             close(*client_socket);
-            cout << "Request Timedout" << endl;
+
             timeout_count++;
-            cout<<"Killing client socket after getting timeout: "<<(*client_socket)<<endl;
-            close(*client_socket);
+            cout << "TIMEOUT : "<<timeout_seconds<< " secs" << endl;
+            cout << "Killed client socket after getting timeout: " << (*client_socket) << endl;
         }
         else
         {
             /* No timeout occured */
-            if (isSuccess)
+            if (*_isSuccess)
             {
-                accumulated_time += tx_Rx_time;
+                accumulated_time += (*_tx_Rx_time);
                 successCount++;
             }
+            else
+                other_err_count++;
         }
+        client_socket = NULL;
+        _isSuccess = NULL;
+        _isTimedOut = NULL;
+        _tx_Rx_time = NULL;
+
+        cout<<"Sleeping for "<<sleepTime_sec<<" secs"<<endl;
         sleep(sleepTime_sec);
+        cout<<"exiting loop"<<endl;
     }
 
     // Note: LOOP END time
     auto LEnd = chrono::high_resolution_clock::now();
 
     // Calculating total time taken by the loop.
-    double loop_time = chrono::duration_cast<chrono::milliseconds>(LEnd - LStart).count();
+    double turnAroundTime = chrono::duration_cast<chrono::milliseconds>(LEnd - LStart).count();
 
     double avgRespTime = successCount > 0 ? (accumulated_time / successCount) : 0;
 
-    double totalCount_p_sec = totalCount > 0 ? ((totalCount / loop_time) * 1000) : 0;
-    double throughput_p_sec = successCount > 0 ? ((successCount / loop_time) * 1000) : 0;
-    double timeout_count_p_sec = timeout_count > 0 ? ((timeout_count / loop_time) * 1000) : 0;
-    double other_err_count_p_sec = other_err_count > 0 ? ((other_err_count / loop_time) * 1000) : 0;
+    double totalCount_p_sec = totalCount > 0 ? ((totalCount / turnAroundTime) * 1000) : 0;
+    double throughput_p_sec = successCount > 0 ? ((successCount / turnAroundTime) * 1000) : 0;
+    double timeout_count_p_sec = timeout_count > 0 ? ((timeout_count / turnAroundTime) * 1000) : 0;
+    double other_err_count_p_sec = other_err_count > 0 ? ((other_err_count / turnAroundTime) * 1000) : 0;
 
     cout << "-------------------per client basis stats-------------------------------" << endl;
-    cout << "Accumulated response time (in ms) :" << accumulated_time << endl;
-    cout << "Average response time (in ms) :" << avgRespTime << endl;
+    cout << "Accumulated response time (in sec) :" << (accumulated_time / 1000) << endl;
+    cout << "Average response time (in sec) :" << (avgRespTime / 1000) << endl;
 
     // request sent should be == throughput + timeout + error rate
     cout << "Number of total requests sent :" << totalCount << endl;           // total requests
@@ -325,7 +325,7 @@ int main(int argc, char *argv[])
     cout << "Number of timeout requests :" << timeout_count << endl;           // timeout
     cout << "Number of all other error requests :" << other_err_count << endl; // error
 
-    cout << "Time taken for completing client loop (in ms) :" << loop_time << endl;
+    cout << "Turn Around Time or loop time (in sec) :" << (turnAroundTime / 1000) << endl;
     cout << "Individual client total requests per seconds :" << totalCount_p_sec << endl;
     cout << "Individual client throughput per seconds :" << throughput_p_sec << endl;
     cout << "Individual client timeout requests per seconds :" << timeout_count_p_sec << endl;

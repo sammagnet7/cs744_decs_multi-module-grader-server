@@ -11,7 +11,7 @@ class Thread_pool
 {
 
 public:
-    int Q_MAX_SIZE=80;
+    int Q_MAX_SIZE=4000;
 
     Thread_pool();
     ~Thread_pool();

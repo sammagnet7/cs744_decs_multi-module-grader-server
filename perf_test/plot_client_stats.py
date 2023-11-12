@@ -8,6 +8,7 @@ from subprocess import run, PIPE
 import matplotlib.pyplot as plt
 import time
 import socket
+#from matplotlib.ticker import MultipleLocator
 
 minClients = int( input( 'Enter count of minimum number(included) of clients: ' ) )
 maxClients = int( input( 'Enter count of maximum number(included) of clients: ' ) )
@@ -36,7 +37,9 @@ for count in range(minClients,maxClients+steps,steps):
 
 	time.sleep(sleep_timer)
 	sleep_timer=(count/5)
-	output = run(['./loadtest.sh', str(count),'10','1', '10'], stdout=PIPE).stdout.splitlines()
+
+	#Arguments: "$numClients" "$loopNum" "$sleepTimeSeconds" "$timeout
+	output = run(['./loadtest.sh', str(count),'10','5', '15'], stdout=PIPE).stdout.splitlines()
 
 	clients.append(int(count))
 	clients_vs_responseTime.append( float( str( output[2] ).split( ':' )[1].rstrip("'") ) )
@@ -73,27 +76,43 @@ fig, axs = plt.subplots(2, 3)
 fig.suptitle('Autograding server performance analysis')
 
 
-axs[0,0].plot(clients, clients_vs_timeout, color='magenta', marker='o')
-axs[0,0].set(xlabel='Number of clients',ylabel='Timeouts')
+axs[0,0].plot(clients, clients_vs_timeout, color='magenta', marker='o', markersize=2)
+axs[0,0].set(xlabel='Number of clients',ylabel='Timeouts (per sec)')
 axs[0,0].set_title("Number of Clients vs Timeouts")
 
-axs[0,2].plot(clients, clients_vs_errReq, color='yellow', marker='o')
-axs[0,2].set(xlabel='Number of clients', ylabel='Error Requests')
+axs[0,2].plot(clients, clients_vs_errReq, color='yellow', marker='o', markersize=2)
+axs[0,2].set(xlabel='Number of clients', ylabel='Error Requests (per sec)')
 axs[0,2].set_title("Number of Clients vs Error Requests")
 
 
-axs[1,2].plot(clients, clients_vs_responseTime,color='red', marker='o')
-axs[1,2].set(xlabel='Number of clients', ylabel='Response time')
+axs[1,2].plot(clients, clients_vs_responseTime,color='red', marker='o', markersize=2)
+axs[1,2].set(xlabel='Number of clients', ylabel='Response time(in sec)')
 axs[1,2].set_title("Number of Clients vs Response time")
 
-axs[1,1].plot(clients, clients_vs_reqSent, color='cyan', marker='o')
-axs[1,1].set(xlabel='Number of clients', ylabel='Requests sent')
+axs[1,1].plot(clients, clients_vs_reqSent, color='cyan', marker='o', markersize=2)
+axs[1,1].set(xlabel='Number of clients', ylabel='Requests sent(per sec)')
 axs[1,1].set_title("Number of Clients vs Requests sent")
 
-axs[1,0].plot(clients, clients_vs_throughput, color='blue', marker='o')
-axs[1,0].set(xlabel='Number of clients', ylabel='Throughput')
-axs[1,0].set_title("Number of Clients vs Throughput(goodput)")
+axs[1,0].plot(clients, clients_vs_throughput, color='blue', marker='o', markersize=2)
+axs[1,0].set(xlabel='Number of clients', ylabel='Throughput(Goodput)(per sec)')
+axs[1,0].set_title("Number of Clients vs Throughput(Goodput)")
 
+
+# spacing = 0.01 # This can be your user specified spacing. 
+# minorLocator = MultipleLocator(spacing)
+# # Set minor tick locations.
+# axs[0,0].yaxis.set_minor_locator(minorLocator)
+# axs[0,0].xaxis.set_minor_locator(minorLocator)
+# # Set grid to use minor tick locations. 
+# axs[0,0].grid(which = 'minor')
+
+# spacing = 0.01 # This can be your user specified spacing. 
+# minorLocator = MultipleLocator(spacing)
+# # Set minor tick locations.
+# axs[1,0].yaxis.set_minor_locator(minorLocator)
+# axs[1,0].xaxis.set_minor_locator(minorLocator)
+# # Set grid to use minor tick locations. 
+# axs[1,0].grid(which = 'minor')
 
 axs[0,0].grid(color = 'green', linestyle = '--', linewidth = 0.5)
 axs[0,1].set_visible(False)

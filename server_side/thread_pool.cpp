@@ -50,7 +50,10 @@ void Thread_pool::infinite_loop_func()
 }
 
 int Thread_pool::getCurrQueueLen(){
-    return task_queue.size();
+    std::unique_lock<std::mutex> lock(queue_mutex);
+    int size= task_queue.size();
+    lock.unlock();
+    return size;
 }
 
 void Thread_pool::logQueueLength(){
@@ -77,7 +80,7 @@ void Thread_pool::logQueueLength(){
             char curr_time[100]; // Buffer to hold the formatted time
             std::strftime(curr_time, sizeof(curr_time), "%H:%M:%S", std::localtime(&sys_time_form));
 
-            int q_length = task_queue.size();
+            int q_length = getCurrQueueLen();
             if(q_length==0)
                 continue;
 
