@@ -30,7 +30,8 @@ Server side: make
 
 Client Side: 		cd ../perf_test/
 	     		make
-	     		
+	     		change serverip_port in loadtest.sh	(if required)
+	     		change server_ip in plot_client_stats	(if required)
 python3 plot_client_stats.py
 
 ########## JUST GIVE BELOW MENTIONED VALUES, DON'T HIT ENTER ################
