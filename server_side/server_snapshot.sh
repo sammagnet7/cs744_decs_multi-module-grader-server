@@ -1,6 +1,6 @@
 #!/bin/bash
 
-client_machine_path="ankur@10.96.16.18:~/Documents"
+client_machine_path="ankur@10.96.20.80:~/Documents"
 
 
 mkdir -p temp_files
@@ -19,8 +19,11 @@ while [ true ]; do
         # Get active threads and CPU utilization with a timestamp and append to the same line in the log file
         threads=$(ps -eLf | grep "./server 8080" | awk 'NR==1{print $6}')
         cpu_utilization=$(top -b -n 1 | awk -F',' '/%Cpu/ {print $1}' | sed 's/[^0-9.]//g')
-        echo "threads :" $threads " cpu Utilization: " $cpu_utilization
-        echo "$timestamp $threads $cpu_utilization" >> "$log_file"
+        
+        if [ "$cpu_utilization" != "0.0" ]; then
+            echo "threads :" $threads " cpu Utilization: " $cpu_utilization
+            echo "$timestamp $threads $cpu_utilization" >> "$log_file"
+        fi
 
         sleep 3
     else

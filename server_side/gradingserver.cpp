@@ -81,7 +81,6 @@ int main(int argc, char *argv[])
     // Extracting from cmd args
     int port = atoi(argv[1]);
     int server_socket = 0;
-    int thread_pool_size = atoi(argv[2]);
 
     // binding server socket
     if ((server_socket = bind_server_socket(port)) < 0)
