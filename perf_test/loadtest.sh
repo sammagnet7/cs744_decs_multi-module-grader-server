@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #Enter the server ip:port to submit requests
-serverip_port=10.157.3.213:8080
+serverip_port=10.130.154.66:8080
 #for bash debugging
 #set -x 
 
