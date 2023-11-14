@@ -21,7 +21,7 @@ cd server_side/
 #Performance Test on client side
 Checkout to Autograder_branch_version to be tested
 git branch -a	 		(to check all branch names)
-git checkout Autograder_V2	(checkout to version1)
+git checkout Autograder_V2	(checkout to version2)
 
 Client side: cd client_side/
 	     make
@@ -37,8 +37,8 @@ python3 plot_client_stats.py
 
 ########## JUST GIVE BELOW MENTIONED VALUES, DON'T HIT ENTER ################
 Enter minimum clients:  1
-Enter maximum clients:  50
-Enter steps	     :  5
+Enter maximum clients:  100
+Enter steps	     :  10
 
 
 #Start the server
