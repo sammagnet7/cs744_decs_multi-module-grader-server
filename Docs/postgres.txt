@@ -1,0 +1,26 @@
+
+CREATE TABLE grading_details(
+   trace_id BIGINT PRIMARY KEY NOT NULL,
+   progress_status VARCHAR(50) NOT NULL,
+   submitted_file text,
+   lastupdated TIMESTAMP NOT NULL,
+   grading_status VARCHAR(50),
+   grading_output text
+);
+
+GRANT ALL ON grading_details TO cs744;
+
+
+brew install libpq
+https://pqxx.org/libpqxx/
+git clone https://github.com/jtv/libpqxx.git
+cd libpqxx
+CXX="clang++ -std=c++17" ./configure --with-postgres-include=/opt/homebrew/opt/libpq/include --with-postgres-lib=/opt/homebrew/opt/libpq/lib
+make
+sudo make install
+
+
+g++ -std=c++17 -w postgres_util.cpp -lpqxx -lpq -L/opt/homebrew/opt/libpq/lib
+g++ -std=c++17 -w postgres_util.cpp -Ilib/pg/include/  -lpqxx -Llib/pg/lib/mac/pqxx -lpq -Llib/pg/lib/mac/pq
+
+g++ -std=c++17 -w postgres_util.cpp -Ilib/pg/include/  -Wl,-rpath,lib/pg/lib/linux/pq -lpqxx -Llib/pg/lib/linux/pqxx -lpq -Llib/pg/lib/linux/pq

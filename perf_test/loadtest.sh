@@ -2,6 +2,8 @@
 
 #Enter the server ip:port to submit requests
 serverip_port=10.157.3.213:8080
+#serverip_port=localhost:8080
+
 #for bash debugging
 #set -x 
 
@@ -110,7 +112,7 @@ overall_avg_resp_t=$( awk '{ if($2 == 0){print 0} else {print $1/$2} }' <<< "${s
 #Print outputs:
 ############################
 
-rm -rf temp_files
+#rm -rf temp_files
 
 echo "Number of clients :"$numClients
 echo "Overall average response time (in sec) :"$overall_avg_resp_t

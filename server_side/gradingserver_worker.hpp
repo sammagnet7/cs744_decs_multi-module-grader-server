@@ -14,6 +14,8 @@
 #include <stdint.h>
 #include<thread>
 
+#include "redis_util.hpp"
+#include "postgres_util.hpp"
 using namespace std;
 
 
@@ -25,7 +27,9 @@ int sendall(int socket, string buf, int datalen);
 
 
 //the submitted file is run using g++ compiler
-string run_prog(string prog, string client_socket, vector<string>& files_to_remove);
+GradingDetails run_prog(string recvd_string, string thread_id, vector<string>& files_to_remove);
 
 //this function handles the worker thread
-void worker_handler(int client_socket);
+void submission_worker_handler(int client_socket, string traceId);
+
+void grader_worker_handler();
