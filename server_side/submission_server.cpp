@@ -17,7 +17,7 @@
 
 using namespace std;
 
-const int MAX_BACKLOG_QUEUE_SIZE = 1;
+const int MAX_BACKLOG_QUEUE_SIZE = 10;
 
 //<<<<<<<<<<<<<<<=============== Utility methods definitions below =============>>>>>>>>>>>>>>>>
 //
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
     std::vector<std::thread> threads;
     Thread_pool th_pool;
 
-    for (int i = 0; i < thread_pool_size; i++)
+    for (int i = 0; i < (thread_pool_size-1); i++)
     {
         threads.push_back(std::thread(&Thread_pool::infinite_submission_loop_func, &th_pool));
     }
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
 
 
     // Creating one single thread for measuring queue length
-    std::thread q_len_logging_th(&Thread_pool::logQueueLength, &th_pool);
+    std::thread q_len_logging_th(&Thread_pool::logSharedQueueLength, &th_pool);
     q_len_logging_th.detach();
 
 
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
             continue;
 
         // Pushing client requests to Local-queue for receving the submissions
-        if (th_pool.getCurrQueueLen() < th_pool.Q_MAX_SIZE)
+        if (th_pool.getLocalQueueLen() < th_pool.Q_MAX_SIZE)
             th_pool.push(client_socket);
         else
             close(client_socket);

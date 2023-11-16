@@ -19,5 +19,6 @@ public:
 
 private:
     static pqxx::connection dbconnect();
+    static void printGradingDetails(const GradingDetails& details);
     static const std::string conn_addr_pg;
 };

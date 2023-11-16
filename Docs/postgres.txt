@@ -24,3 +24,8 @@ g++ -std=c++17 -w postgres_util.cpp -lpqxx -lpq -L/opt/homebrew/opt/libpq/lib
 g++ -std=c++17 -w postgres_util.cpp -Ilib/pg/include/  -lpqxx -Llib/pg/lib/mac/pqxx -lpq -Llib/pg/lib/mac/pq
 
 g++ -std=c++17 -w postgres_util.cpp -Ilib/pg/include/  -Wl,-rpath,lib/pg/lib/linux/pq -lpqxx -Llib/pg/lib/linux/pqxx -lpq -Llib/pg/lib/linux/pq
+
+
+ UPDATE grading_details
+SET progress_status = 'DONE'
+WHERE trace_id ='7845206303353438719';

@@ -22,6 +22,9 @@ using namespace std;
 // receives all incoming data associated with given socket into the pointed string
 int receiveall(int client_socket, string &data);
 
+// receives trace_id associated with given socket into the pointed string
+int receiveId(int client_socket, string &data);
+
 // sends all the data stored in the pointed char buffer to the specified socket
 int sendall(int socket, string buf, int datalen);
 
@@ -33,3 +36,7 @@ GradingDetails run_prog(string recvd_string, string thread_id, vector<string>& f
 void submission_worker_handler(int client_socket, string traceId);
 
 void grader_worker_handler();
+
+void statusCheck_worker_handler(int sockfd);
+
+long long getSharedQueueLength();
