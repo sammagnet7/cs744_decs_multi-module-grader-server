@@ -21,8 +21,8 @@ public:
     void infinite_submission_loop_func();
     void infinite_grading_loop_func();
     void infinite_statusCheck_loop_func();
-    void logQueueLength();
-    int getCurrQueueLen();
+    void logSharedQueueLength();
+    int getLocalQueueLen();
 
     
 private:

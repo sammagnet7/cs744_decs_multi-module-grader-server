@@ -30,6 +30,16 @@ pqxx::connection Postgres_util::dbconnect()
     return conn;
 }
 
+// Function to print GradingDetails
+void Postgres_util::printGradingDetails(const GradingDetails& details) {
+    std::cout << "Trace ID: " << details.trace_id << std::endl;
+    std::cout << "Progress Status: " << details.progress_status << std::endl;
+    std::cout << "Submitted File: " << details.submitted_file << std::endl;
+    std::cout << "Last Updated: " << details.lastupdated << std::endl;
+    std::cout << "Grading Status: " << details.grading_status << std::endl;
+    std::cout << "Grading Output: " << details.grading_output << std::endl;
+}
+
 void Postgres_util::insertGradingDetails(const GradingDetails &details)
 {
     try
@@ -81,7 +91,7 @@ GradingDetails Postgres_util::retrieveGradingDetails(string trace_id)
         pqxx::nontransaction N(conn);
 
         // Execute SQL query to retrieve grading details for a specific trace_id
-        string sql = "SELECT * FROM grading_details WHERE trace_id = " + trace_id + ";";
+        string sql = "SELECT * FROM grading_details WHERE trace_id = '" + trace_id + "';";
         result R(N.exec(sql));
 
         // Assume the first row is the result (adjust as needed)
@@ -95,6 +105,9 @@ GradingDetails Postgres_util::retrieveGradingDetails(string trace_id)
             details.grading_status = row["grading_status"].as<string>();
             details.grading_output = row["grading_output"].as<string>();
         }
+        else  {
+            details.trace_id = "0";
+        }  
 
         /* LOGGING */
         auto threadId = std::this_thread::get_id();
@@ -104,6 +117,7 @@ GradingDetails Postgres_util::retrieveGradingDetails(string trace_id)
         std::string log = "Thread Id: " + thId + " :: Records retrieved successfully where TraceId: " + details.trace_id;
         std::cout << log << std::endl;
 
+        printGradingDetails(details);
         conn.close();
     }
     catch (const std::exception &e)
@@ -136,10 +150,10 @@ void Postgres_util::updateGradingDetails(const GradingDetails &details)
                      << "lastupdated = '" << timestampStr << "', "
                      << "grading_status = '" << details.grading_status << "', "
                      << "grading_output = '" << details.grading_output << "' "
-                     << "WHERE trace_id = " << details.trace_id;
+                     << "WHERE trace_id = '" << details.trace_id<<"';";
 
         std::string sql = updateStream.str();
-        // std::cout << sql << std::endl;
+        std::cout << "sql: "<<sql << std::endl;
 
         /* Execute SQL query */
         W.exec(sql);

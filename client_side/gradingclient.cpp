@@ -16,14 +16,16 @@
 #include <thread>
 #include <future>
 #include <pthread.h>
+#include <sstream>
 
 using namespace std;
 
 string server_ip;
-int server_port;
+int submission_server_port;
+int query_server_port;
 string file_name;
 float timeout_seconds;
-
+float polling_intrvl;
 
 //<<<<<<<<<<<<<<<=============== Utility methods definitions below =============>>>>>>>>>>>>>>>>
 //
@@ -51,7 +53,6 @@ int receiveall(int client_socket, string &data_received)
         return -1;
     }
     datalen = ntohl(tmp);
-
     char buffer[datalen];
     bytesLeft = datalen;
     while (totalReceived < datalen)
@@ -125,6 +126,27 @@ int sendall(int socket, string buf, int datalen)
     return currentLen == -1 ? -1 : 0; // return -1 on failure, 0 on success
 }
 
+// sends trace_id stored in the pointed char buffer to the specified socket
+int sendTraceId(int socket, string buf, int datalen)
+{
+    ssize_t sent = 0;
+
+    if ((sent = send(socket, buf.c_str(), datalen, 0)) == -1)
+    {
+        //  if( errno == ETIMEDOUT || errno == EWOULDBLOCK || errno == EAGAIN ){
+        //     timeout_count++;
+        //     other_err_count--;
+        //     cerr<<"Timeout while SEND"<<endl;
+        // }
+        cerr << "Error while: <sending traceId>" << endl;
+        return -1;
+    }
+
+    string log = "Status check sent for TraceId: " + buf;
+    cout << log << endl;
+    return 0; // return -1 on failure, 0 on success
+}
+
 // Makes the CONNECT call from client end and returns the connected socket id upon successful
 int connectsocketbyIpPort(string server_ip, int server_port)
 {
@@ -135,17 +157,17 @@ int connectsocketbyIpPort(string server_ip, int server_port)
         return -1;
     }
 
-    //set socket timeout
-     struct timeval timeout;
-     timeout.tv_sec = (int)timeout_seconds;
-     timeout.tv_usec = (timeout_seconds - timeout.tv_sec) * 1000000;
+    // set socket timeout
+    struct timeval timeout;
+    timeout.tv_sec = (int)timeout_seconds;
+    timeout.tv_usec = (timeout_seconds - timeout.tv_sec) * 1000000;
 
-    if (setsockopt (client_socket, SOL_SOCKET, SO_SNDTIMEO, &timeout,
-                sizeof timeout) < 0)
+    if (setsockopt(client_socket, SOL_SOCKET, SO_SNDTIMEO, &timeout,
+                   sizeof timeout) < 0)
         perror("setsockopt for SENDTIMO failed\n");
 
-    if (setsockopt (client_socket, SOL_SOCKET, SO_RCVTIMEO, &timeout,
-                sizeof timeout) < 0)
+    if (setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, &timeout,
+                   sizeof timeout) < 0)
         perror("setsockopt RCVTIMO failed\n");
 
     // connect socket
@@ -172,19 +194,71 @@ int connectsocketbyIpPort(string server_ip, int server_port)
     return client_socket;
 }
 
-void worker(int *sockfd, bool *_isSuccess, bool *_isTimedOut, double *_tx_Rx_time)
+string extractIdfromResp(string input)
 {
-    int client_socket = 0;
+    size_t start = input.find('<');
+    size_t end = input.find('>', start);
+
+    // Check if both angle brackets are found
+    if (start != std::string::npos && end != std::string::npos)
+    {
+        // Extract the substring between the angle brackets
+        return input.substr(start + 1, end - start - 1);
+    }
+    else
+    {
+        cerr << "Invalid traceId" << endl;
+        return "";
+        throw input;
+    }
+}
+
+void polling(string traceId)
+{   
+    string poll_complete = "processing is done, here are the results:";
+    int query_socket = 0;
+
+    while (true)
+    {
+
+        // Connects client to the Query server on the specified host-port
+        if ((query_socket = connectsocketbyIpPort(server_ip, query_server_port)) < 0)
+            throw query_socket;
+        
+
+        // Send the file data to the client iteratively
+        if (int resp_code = sendTraceId(query_socket, traceId.c_str(), traceId.length()) != 0)
+            throw resp_code;
+
+        // Receive the source code from the client
+        string grading_response = "";
+        if (int resp_code = receiveall(query_socket, grading_response) != 0)
+            throw resp_code;
+
+        cout << grading_response << endl;
+
+        close(query_socket);
+
+        if( grading_response.find(poll_complete) != std::string::npos  )
+            break;
+
+        sleep(polling_intrvl);
+    }
+}
+
+void worker_func(int *sockfd, bool *_isSuccess, bool *_isTimedOut, double *_tx_Rx_time)
+{
+    int submission_client_socket = 0;
     try
     {
-        cout << "-----Worker starts-----" << endl;
+        cout << "-----worker_func starts-----" << endl;
         cout << "Running thread id: : " << std::this_thread::get_id() << endl;
         // Connects client to the server on the specified host-port
-        if ((client_socket = connectsocketbyIpPort(server_ip, server_port)) < 0)
-            throw client_socket;
+        if ((submission_client_socket = connectsocketbyIpPort(server_ip, submission_server_port)) < 0)
+            throw submission_client_socket;
 
         // Puttng value into pointer
-        *sockfd = client_socket;
+        *sockfd = submission_client_socket;
         // Reads the file into a String
         string source_code = read_file(file_name);
 
@@ -192,13 +266,28 @@ void worker(int *sockfd, bool *_isSuccess, bool *_isTimedOut, double *_tx_Rx_tim
         auto Tsend = chrono::high_resolution_clock::now();
 
         // Send the file data to the client iteratively
-        if (int resp_code = sendall(client_socket, source_code.c_str(), source_code.length()) != 0)
+        if (int resp_code = sendall(submission_client_socket, source_code.c_str(), source_code.length()) != 0)
             throw resp_code;
 
         // Receive the source code from the client
-        string server_response = "";
-        if (int resp_code = receiveall(client_socket, server_response) != 0)
+        string submition_response = "";
+        if (int resp_code = receiveall(submission_client_socket, submition_response) != 0)
             throw resp_code;
+
+        cout << submition_response << endl;
+
+        string trace_id = extractIdfromResp(submition_response);
+
+        /*LOGGING*/
+        auto threadId = this_thread::get_id();
+        stringstream ss;
+        ss << threadId;
+        string thId = ss.str();
+        string log = "Thread id: " + thId + " :: Grading request file submitted to server with TraceId: " + trace_id;
+        cout << log << endl;
+        close(submission_client_socket);
+
+        polling(trace_id);
 
         // Note: data RECEIVING END time
         auto Trecv = chrono::high_resolution_clock::now();
@@ -206,13 +295,13 @@ void worker(int *sockfd, bool *_isSuccess, bool *_isTimedOut, double *_tx_Rx_tim
         // Calculating total time taken for transmit and receive.
         *_tx_Rx_time = chrono::duration_cast<chrono::milliseconds>(Trecv - Tsend).count();
 
-        cout << server_response << endl;
+        // cout << server_response << endl;
 
         *_isSuccess = true;
         cout << "SUCCESS" << endl;
     }
     catch (...)
-    {   
+    {
         *_isSuccess = false;
         // if this worker thread is already timed out by the main thread and detached, don't print anything
         if (!(*_isTimedOut))
@@ -232,18 +321,20 @@ int main(int argc, char *argv[])
 {
 
     // Describe usage
-    if (argc != 6)
+    if (argc != 8)
     {
-        cerr << "Usage: " << argv[0] << " <serverIP:port> <sourceCodeFileTobeGraded> <loopNum> <sleepTimeSeconds> <timeout-seconds>" << endl;
+        cerr << "Usage: " << argv[0] << " <submission_serverIP:port> <sourceCodeFileTobeGraded> <loopNum> <sleepTimeSeconds> <timeout-seconds> <query_server_port> <polling-interval>" << endl;
         return 1;
     }
 
     // Extract all the command line args
     server_ip = strtok(argv[1], ":");
-    server_port = stoi(strtok(NULL, ":"));
+    submission_server_port = stoi(strtok(NULL, ":"));
     file_name = argv[2];
     timeout_seconds = stof(argv[5]);
-    
+    query_server_port = stoi(argv[6]);
+    polling_intrvl = stof(argv[7]);
+
     int loopNum = stoi(argv[3]);
     float sleepTime_sec = stof(argv[4]);
 
@@ -258,8 +349,8 @@ int main(int argc, char *argv[])
     while (loopNum--)
     {
         cout << "------------New Loop starts------------------------" << endl;
-        cout<<"Main Thread id: "<< std::this_thread::get_id() <<endl;
-        cout<<"Loop id "<<loopNum<<endl;
+        cout << "Main Thread id: " << std::this_thread::get_id() << endl;
+        cout << "Loop id " << loopNum << endl;
         bool *_isSuccess = new bool(false);
         bool *_isTimedOut = new bool(false);
 
@@ -267,18 +358,18 @@ int main(int argc, char *argv[])
         int *client_socket = new int();
 
         /* Creating threads */
-        std::thread th(worker, client_socket, _isSuccess, _isTimedOut, _tx_Rx_time);
+        std::thread th(worker_func, client_socket, _isSuccess, _isTimedOut, _tx_Rx_time);
         cout << "created thread: " << th.get_id() << endl;
 
         auto future = std::async(std::launch::async, &std::thread::join, &th);
-        if (future.wait_for(std::chrono::milliseconds((int) (timeout_seconds * 1000) )) == std::future_status::timeout)
+        if (future.wait_for(std::chrono::milliseconds((int)(timeout_seconds * 1000))) == std::future_status::timeout)
         {
             /* do things, if thread has not terminated within time */
             *_isTimedOut = true;
             close(*client_socket);
 
             timeout_count++;
-            cout << "TIMEOUT : "<<timeout_seconds<< " secs" << endl;
+            cout << "TIMEOUT : " << timeout_seconds << " secs" << endl;
             cout << "Killed client socket after getting timeout: " << (*client_socket) << endl;
         }
         else
@@ -297,9 +388,9 @@ int main(int argc, char *argv[])
         _isTimedOut = NULL;
         _tx_Rx_time = NULL;
 
-        cout<<"Sleeping for "<<sleepTime_sec<<" secs"<<endl;
+        cout << "Sleeping for " << sleepTime_sec << " secs" << endl;
         sleep(sleepTime_sec);
-        cout<<"exiting loop"<<endl;
+        cout << "exiting loop" << endl;
     }
 
     // Note: LOOP END time

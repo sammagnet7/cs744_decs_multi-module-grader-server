@@ -3,13 +3,14 @@
 #Enter the server ip:port to submit requests
 serverip_port=10.157.3.213:8080
 #serverip_port=localhost:8080
+queryServerPort=9090
 
 #for bash debugging
 #set -x 
 
 
-if [ $# -ne 4 ]; then
-	echo "Usage: $0 <numClients> <loopNum> <sleepTimeSeconds> <timeout-seconds>"
+if [ $# -ne 5 ]; then
+	echo "Usage: $0 <numClients> <loopNum> <sleepTimeSeconds> <timeout-seconds> <polling-interval>"
 	exit
 fi
 
@@ -17,15 +18,16 @@ numClients=$1
 loopNum=$2
 sleepTimeSeconds=$3
 timeout=$4
+pollInterval=$5
 
-echo "Arguments passed: #clients: "$numClients" #loops: "$loopNum" sleep: "$sleepTimeSeconds" timeout: "$timeout
+echo "Arguments passed: #clients: "$numClients" #loops: "$loopNum" sleep: "$sleepTimeSeconds" timeout: "$timeout" polling-interval: "$pollInterval 
 
 mkdir  temp_files
 
 counter=$numClients
 for (( i = 0; i < $counter; i++ )); do
 	#../client_side/submit 10.157.3.213:8080 ../client_side/test/source_P.cpp 10 0.5 0.9
-	../client_side/submit $serverip_port ../client_side/test/source_P.cpp $loopNum $sleepTimeSeconds $timeout > temp_files/output_$i.txt 2>&1 &
+	../client_side/submit $serverip_port ../client_side/test/source_P.cpp $loopNum $sleepTimeSeconds $timeout $queryServerPort $pollInterval > temp_files/output_$i.txt 2>&1 &
 done
 
 wait
@@ -112,7 +114,7 @@ overall_avg_resp_t=$( awk '{ if($2 == 0){print 0} else {print $1/$2} }' <<< "${s
 #Print outputs:
 ############################
 
-#rm -rf temp_files
+rm -rf temp_files
 
 echo "Number of clients :"$numClients
 echo "Overall average response time (in sec) :"$overall_avg_resp_t
