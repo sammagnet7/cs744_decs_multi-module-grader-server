@@ -22,7 +22,7 @@ public:
     void infinite_grading_loop_func();
     void infinite_statusCheck_loop_func();
     void logSharedQueueLength();
-    void logServiceTime(double serviceTime);
+    void logServiceTime(long serviceTime);
     int getLocalQueueLen();
 
     

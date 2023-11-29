@@ -7,13 +7,6 @@ string read_file(string file)
     ifstream filestream(file.c_str(), ios::binary);
     string filedata((istreambuf_iterator<char>(filestream)),
                        istreambuf_iterator<char>());
-    /*
-    string txt, txt_accumulator;
-    while (getline(filestream, txt))
-    {
-        txt_accumulator += (txt + "\n");
-    }
-    */
     filestream.close();
     return filedata;
 }

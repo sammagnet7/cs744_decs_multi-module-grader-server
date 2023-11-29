@@ -117,7 +117,6 @@ GradingDetails Postgres_util::retrieveGradingDetails(string trace_id)
         std::string log = "Thread Id: " + thId + " :: Records retrieved successfully where TraceId: " + details.trace_id;
         std::cout << log << std::endl;
 
-        printGradingDetails(details);
         conn.close();
     }
     catch (const std::exception &e)
@@ -153,7 +152,7 @@ void Postgres_util::updateGradingDetails(const GradingDetails &details)
                      << "WHERE trace_id = '" << details.trace_id<<"';";
 
         std::string sql = updateStream.str();
-        std::cout << "sql: "<<sql << std::endl;
+        //std::cout << "sql: "<<sql << std::endl;
 
         /* Execute SQL query */
         W.exec(sql);

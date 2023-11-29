@@ -101,11 +101,14 @@ with open(server_snapshot_log, 'r') as log_file, open(server_snapshot_nc_log, 'r
                 # print(timestamp,thread,cpu_utilization)
                 service_time_line_iterator+=1
                 
-                
-            averageCpuUtilization.append(tot_cpu/cnt_log_line)
-            averageNumberOfThreads.append(tot_thread/cnt_log_line)
-            averageQueueLength.append(tot_queue_length/cnt_q_line)
-            averageServiceTime.append(tot_service_time/cnt_service_time_line)
+
+
+
+
+            averageCpuUtilization.append(0 if cnt_log_line == 0 else tot_cpu / cnt_log_line)
+            averageNumberOfThreads.append(0 if cnt_log_line == 0 else tot_thread / cnt_log_line)
+            averageQueueLength.append(0 if cnt_q_line == 0 else tot_queue_length / cnt_q_line)
+            averageServiceTime.append(0 if cnt_service_time_line == 0 else tot_service_time / cnt_service_time_line)
 
 
         elif n=="exit":
@@ -144,8 +147,8 @@ axs[1,1].set(xlabel='Number of clients', ylabel='Queue Length (as an average)')
 axs[1,1].set_title("Number of Clients vs Average Queue Length")
 
 axs[1,0].plot(clients, averageServiceTime, color='blue', marker='o', markersize=2)
-axs[1,0].set(xlabel='Number of clients', ylabel='Service time (as an average)')
-axs[1,0].set_title("Number of Clients vs Average Service time")
+axs[1,0].set(xlabel='Number of clients', ylabel='Service time (in ms as an average)')
+axs[1,0].set_title("Number of Clients vs Average Service time (in ms)")
 
 axs[0,0].grid(color = 'green', linestyle = '--', linewidth = 0.5)
 axs[0,1].grid(color = 'green', linestyle = '--', linewidth = 0.5)

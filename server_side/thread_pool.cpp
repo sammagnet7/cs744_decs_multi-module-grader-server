@@ -66,15 +66,12 @@ void Thread_pool::infinite_grading_loop_func()
     while (true)
     {
         auto serviceStart = chrono::high_resolution_clock::now();
-
         grader_worker_handler();
 
         auto serviceEnd = chrono::high_resolution_clock::now();
-
         // Calculating total time taken for servicing one request
         double serviceTime = chrono::duration_cast<chrono::milliseconds>(serviceEnd - serviceStart).count();
-
-        logServiceTime( serviceTime );
+        logServiceTime( (long)serviceTime );
     }
 }
 
@@ -162,7 +159,7 @@ void Thread_pool::logSharedQueueLength()
     }
 }
 
-void Thread_pool::logServiceTime( double serviceTime )
+void Thread_pool::logServiceTime( long serviceTime )
 {
 
     std::string directoryPath = "temp_files";
@@ -175,7 +172,7 @@ void Thread_pool::logServiceTime( double serviceTime )
     }
 
     // Open the file inside the directory
-    std::ofstream file(filePath, std::ios::out);
+    std::ofstream file(filePath, std::ios::app);
 
     if (file.is_open())
     {
