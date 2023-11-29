@@ -1,14 +1,17 @@
 #include "thread_pool.hpp"
 #include "gradingserver_worker.hpp"
 
+//Constructor for Threadpool
 Thread_pool::Thread_pool() : task_queue(), queue_mutex(), mutex_condition(), server_live(true)
 {
 }
 
+//Destructor for Threadpool
 Thread_pool::~Thread_pool()
 {
 }
 
+//Pushes socket entry into task queue
 void Thread_pool::push(int sock)
 {
     std::unique_lock<std::mutex> lock(queue_mutex);
@@ -16,15 +19,8 @@ void Thread_pool::push(int sock)
     lock.unlock();
     mutex_condition.notify_one();
 }
-/**
-void Thread_pool::done()
-{
-    std::unique_lock<std::mutex> lock(queue_mutex);
-    server_live = false;
-    lock.unlock();
-    mutex_condition.notify_all();
-}*/
 
+// continue running function for Grading server
 void Thread_pool::infinite_loop_func()
 {
     int sockfd;
@@ -49,6 +45,7 @@ void Thread_pool::infinite_loop_func()
     }
 }
 
+//gives local task queue length
 int Thread_pool::getCurrQueueLen(){
     std::unique_lock<std::mutex> lock(queue_mutex);
     int size= task_queue.size();
@@ -56,6 +53,7 @@ int Thread_pool::getCurrQueueLen(){
     return size;
 }
 
+//logs task queue length to the log file
 void Thread_pool::logQueueLength(){
     
     std::string directoryPath = "temp_files";
@@ -74,11 +72,7 @@ void Thread_pool::logQueueLength(){
         
         while (true) {
 
-
             auto timenow = chrono::system_clock::to_time_t(chrono::system_clock::now()); 
-            
-            // auto sys_time = std::chrono::high_resolution_clock::now();
-            // std::time_t sys_time_form = std::chrono::system_clock::to_time_t(sys_time);
 
             char curr_time[100]; // Buffer to hold the formatted time
             std::strftime(curr_time, sizeof(curr_time), "%H:%M:%S", std::localtime(&timenow));
@@ -102,6 +96,7 @@ void Thread_pool::logQueueLength(){
     }
 }
 
+//logs service time taken, into log file
 void Thread_pool::logServiceTime( long serviceTime )
 {
 

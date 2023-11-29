@@ -21,8 +21,6 @@ int receiveall(int client_socket, string &data)
     ssize_t bytes_received = recv(client_socket, &tmp, sizeof tmp, 0);
     datalen = ntohl(tmp);
 
-    cout << "Thread id: " << std::this_thread::get_id() << ":: File size is: " << datalen << endl;
-
     if (bytes_received <= 0)
     {
         perror("Error receiving source code");
@@ -43,7 +41,6 @@ int receiveall(int client_socket, string &data)
         else if (currentLen == -1)
         {
             perror("Error while receiving data at server");
-            cout << "Thread id: " << std::this_thread::get_id() << ":: Partial data received of size: " << totalReceived;
             close(client_socket);
             break;
         }
@@ -75,12 +72,10 @@ int sendall(int socket, string buf, int datalen)
         if (currentLen == -1)
         {
             perror("Error while sending data to the server");
-            cout << "Partial data sent of size: " << totalsent;
             break;
         }
         totalsent += currentLen;
         bytesleft -= currentLen;
-        // cout << "Total data sent from this machine: " << totalsent << endl;
     }
     return currentLen == -1 ? -1 : 0; // return -1 on failure, 0 on success
 }

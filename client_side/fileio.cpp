@@ -7,13 +7,6 @@ string read_file(string file)
     ifstream filestream(file.c_str(), ios::binary);
     string filedata((istreambuf_iterator<char>(filestream)),
                        istreambuf_iterator<char>());
-    /*
-    string txt, txt_accumulator;
-    while (getline(filestream, txt))
-    {
-        txt_accumulator += (txt + "\n");
-    }
-    */
     filestream.close();
     return filedata;
 }
@@ -35,7 +28,7 @@ void _remove(string file)
     }
     catch (...)
     {
-        cout<<"error in remove";
+        cerr<<"error in remove";
     }
 }
 
@@ -47,6 +40,7 @@ void removeTempFiles(vector<string> files_to_remove)
     }
 }
 
+//Utility function used to log message to file
 void logMessageToFile(const std::string& message) {
 
     std::string directoryPath = "temp_files";

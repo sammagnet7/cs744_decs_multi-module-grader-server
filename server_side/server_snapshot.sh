@@ -1,5 +1,7 @@
 #!/bin/bash
 
+### This script is used to send the server side generated logs to the client side when finally server is killed.
+
 client_machine_path="ankur@10.96.20.80:~/Documents"
 
 #variable 
