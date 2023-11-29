@@ -2,7 +2,6 @@
 
 #Enter the server ip:port to submit requests
 serverip_port=10.130.154.66:8080
-#serverip_port=localhost:8080
 queryServerPort=9090
 
 #for bash debugging
@@ -45,8 +44,6 @@ declare -a per_client_totalRequests
 declare -a per_client_throughput
 declare -a per_client_timeoutrequests
 declare -a per_client_errorRequests
-#declare -a acc_resp_times
-#declare -a loop_times
 
 for (( i = 0; i < $counter; i++ )); do
 
@@ -59,8 +56,6 @@ for (( i = 0; i < $counter; i++ )); do
 	per_client_timeoutrequests[$i]=$( cat temp_files/output_$i.txt | awk '/Individual client timeout requests/ {print $0}' | awk -F: '{print $2;}'  )
 	per_client_errorRequests[$i]=$( cat temp_files/output_$i.txt | awk '/Individual client other error requests/ {print $0}' | awk -F: '{print $2;}'  )
 
-	#acc_resp_times[$i]=$(cat temp_files/output_$i.txt | awk '/Accumulated response time/ {print $0}' | awk -F: '{print $2;}')
-	#loop_times[$i]=$(cat temp_files/output_$i.txt | awk '/Turn Around Time or loop time/ {print $0}' | awk -F: '{print $2;}')
 
 done
 
@@ -88,9 +83,6 @@ for (( i = 0; i < $counter; i++ )); do
 	sum_of_timeoutrequests=$( awk '{print $1+$2}' <<<"${sum_of_timeoutrequests} ${per_client_timeoutrequests[$i]}" )
 	sum_of_errRequets=$( awk '{print $1+$2}' <<<"${sum_of_errRequets} ${per_client_errorRequests[$i]}" )
 
-	
-	#sum_of_throughput=$( awk '{ if($3 == 0) {print $1} else { print $1 + ( ($2 * 1000) / $3 ) } }' <<<"${sum_of_throughput} ${success_counts[$i]} ${acc_resp_times[$i]}" )
-	#sum_of_throughput=$( awk '{ if($3 == 0) {print $1} else { print $1 + ( ($2 * 1000) / $3 ) } }' <<<"${sum_of_throughput} ${success_counts[$i]} ${loop_times[$i]}" )
 
 done
 
@@ -120,5 +112,3 @@ echo "Overall requests sent per sec:"$overall_totRequests
 echo "Overall throughput per sec:"$overall_throughput
 echo "Overall timeout requests per sec:"$overall_timeoutrequests
 echo "Overall error requests per sec:"$overall_sum_of_errRequets
-
-
