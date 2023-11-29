@@ -29,3 +29,6 @@ string run_prog(string prog, string client_socket, vector<string>& files_to_remo
 
 //this function handles the worker thread
 void worker_handler(int client_socket);
+
+//logs service time taken, into log file
+void logServiceTime( long serviceTime );

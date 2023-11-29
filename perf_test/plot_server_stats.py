@@ -1,4 +1,7 @@
-#!/Users/soumikdutta/miniconda3/bin/python3
+#!/usr/bin/python3
+
+### This script is used to analyse and plot dependng upon server side logged data
+
 import matplotlib.pyplot as plt
 from subprocess import run, PIPE
 import os
@@ -90,8 +93,9 @@ axs[1].grid(color = 'green', linestyle = '--', linewidth = 0.5)
 
 fig.tight_layout()
 
-plt.show()
 #plt.savefig("graph.png", bbox_inches='tight')
+plt.show()
+
 
 os.remove(server_snapshot_log)
 os.remove(server_snapshot_nc_log)

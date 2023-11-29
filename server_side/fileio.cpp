@@ -7,13 +7,6 @@ string read_file(string file)
     ifstream filestream(file.c_str(), ios::binary);
     string filedata((istreambuf_iterator<char>(filestream)),
                        istreambuf_iterator<char>());
-    /*
-    string txt, txt_accumulator;
-    while (getline(filestream, txt))
-    {
-        txt_accumulator += (txt + "\n");
-    }
-    */
     filestream.close();
     return filedata;
 }
@@ -44,5 +37,26 @@ void removeTempFiles(vector<string> files_to_remove)
 {
     for(string file : files_to_remove){
         _remove(file);
+    }
+}
+
+//Logs any passed message to log file
+void logMessageToFile(const std::string& message) {
+
+    std::string directoryPath = "temp_files";
+    std::string filePath = "temp_files/overall.log";
+
+    // Check if the directory exists or create it if it doesn't
+    if (!std::filesystem::exists(directoryPath))
+    {
+        std::filesystem::create_directory(directoryPath);
+    }
+
+    std::ofstream outputFile(filePath, std::ios::app); // 'app' for append mode
+    if (outputFile.is_open()) {
+        outputFile << message << std::endl;
+        outputFile.close();
+    } else {
+        std::cerr << "Error opening file: " << filePath << std::endl;
     }
 }

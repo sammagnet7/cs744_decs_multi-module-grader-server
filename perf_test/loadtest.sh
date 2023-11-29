@@ -1,9 +1,10 @@
 #!/bin/bash
 
+### This script is used for generating load by creating parallel submission clients to the server
+
 #Enter the server ip:port to submit requests
 serverip_port=10.130.154.66:8080
-#for bash debugging
-#set -x 
+
 
 
 if [ $# -ne 4 ]; then
@@ -22,7 +23,6 @@ mkdir  temp_files
 
 counter=$numClients
 for (( i = 0; i < $counter; i++ )); do
-	#../client_side/submit 10.157.3.213:8080 ../client_side/test/source_P.cpp 10 0.5 0.9
 	../client_side/submit $serverip_port ../client_side/test/source_P.cpp $loopNum $sleepTimeSeconds $timeout > temp_files/output_$i.txt 2>&1 &
 done
 
@@ -56,8 +56,6 @@ for (( i = 0; i < $counter; i++ )); do
 	per_client_timeoutrequests[$i]=$( cat temp_files/output_$i.txt | awk '/Individual client timeout requests/ {print $0}' | awk -F: '{print $2;}'  )
 	per_client_errorRequests[$i]=$( cat temp_files/output_$i.txt | awk '/Individual client other error requests/ {print $0}' | awk -F: '{print $2;}'  )
 
-	#acc_resp_times[$i]=$(cat temp_files/output_$i.txt | awk '/Accumulated response time/ {print $0}' | awk -F: '{print $2;}')
-	#loop_times[$i]=$(cat temp_files/output_$i.txt | awk '/Turn Around Time or loop time/ {print $0}' | awk -F: '{print $2;}')
 
 done
 
@@ -84,10 +82,6 @@ for (( i = 0; i < $counter; i++ )); do
 	sum_of_throughput=$( awk '{print $1+$2}' <<<"${sum_of_throughput} ${per_client_throughput[$i]}" )
 	sum_of_timeoutrequests=$( awk '{print $1+$2}' <<<"${sum_of_timeoutrequests} ${per_client_timeoutrequests[$i]}" )
 	sum_of_errRequets=$( awk '{print $1+$2}' <<<"${sum_of_errRequets} ${per_client_errorRequests[$i]}" )
-
-	
-	#sum_of_throughput=$( awk '{ if($3 == 0) {print $1} else { print $1 + ( ($2 * 1000) / $3 ) } }' <<<"${sum_of_throughput} ${success_counts[$i]} ${acc_resp_times[$i]}" )
-	#sum_of_throughput=$( awk '{ if($3 == 0) {print $1} else { print $1 + ( ($2 * 1000) / $3 ) } }' <<<"${sum_of_throughput} ${success_counts[$i]} ${loop_times[$i]}" )
 
 done
 

@@ -40,19 +40,13 @@ int receiveall(int client_socket, string &data_received)
     ssize_t bytes_received = recv(client_socket, &tmp, sizeof(tmp), 0);
     if (bytes_received <= 0)
     {
-        // if( errno == ETIMEDOUT || errno == EWOULDBLOCK || errno == EAGAIN ){
-        //     timeout_count++;
-        //     other_err_count--;
-        //     cerr<<"Timeout while RECV"<<endl;
-        // }
-
         cerr << "Error while: <receiving data length>" << endl;
         close(client_socket);
         return -1;
     }
     datalen = ntohl(tmp);
 
-    char buffer[datalen];
+    char buffer[datalen+1];
     bytesLeft = datalen;
     while (totalReceived < datalen)
     {
@@ -62,11 +56,6 @@ int receiveall(int client_socket, string &data_received)
         currentLen = recv(client_socket, buffer + currentLen, bytesLeft, 0);
         if (currentLen == -1)
         {
-            // if( errno == ETIMEDOUT || errno == EWOULDBLOCK || errno == EAGAIN ){
-            //     timeout_count++;
-            //     other_err_count--;
-            //     cerr<<"Timeout while RECV"<<endl;
-            // }
             cerr << "Error while: <receiving data>" << endl;
             break;
         }
@@ -90,19 +79,12 @@ int sendall(int socket, string buf, int datalen)
     uint32_t tmp = htonl(n);
 
     // sends the file size first
-    cout << "sending File size: " << n << endl;
     ssize_t sent = 0;
     if ((sent = send(socket, &tmp, sizeof(tmp), 0)) == -1)
     {
-        //  if( errno == ETIMEDOUT || errno == EWOULDBLOCK || errno == EAGAIN ){
-        //     timeout_count++;
-        //     other_err_count--;
-        //     cerr<<"Timeout while SEND"<<endl;
-        // }
         cerr << "Error while: <sending the file size>" << endl;
         return -1;
     }
-    cout << "File size sent: " << sent << " on socket: " << socket << endl;
 
     // sends total file data
     while (totalsent < datalen)
@@ -110,17 +92,11 @@ int sendall(int socket, string buf, int datalen)
         currentLen = send(socket, buf.substr(totalsent).c_str(), bytesleft, 0);
         if (currentLen == -1)
         {
-            // if( errno == ETIMEDOUT || errno == EWOULDBLOCK || errno == EAGAIN ){
-            //     timeout_count++;
-            //     other_err_count--;
-            //     cerr<<"Timeout while SEND"<<endl;
-            // }
             cerr << "Error while: <sending the file>" << endl;
             break;
         }
         totalsent += currentLen;
         bytesleft -= currentLen;
-        std::cout << "File data sent: " << totalsent << " on socket: " << socket << endl;
     }
     return currentLen == -1 ? -1 : 0; // return -1 on failure, 0 on success
 }
@@ -160,11 +136,6 @@ int connectsocketbyIpPort(string server_ip, int server_port)
 
     if (connect(client_socket, (struct sockaddr *)&target_server_address, sizeof(target_server_address)) < 0)
     {
-        // if( errno == ETIMEDOUT || errno == EWOULDBLOCK || errno == EAGAIN ){
-        //     timeout_count++;
-        //     other_err_count--;
-        //     cerr<<"Timeout while CONNECT"<<endl;
-        // }
         cerr << "Error while: <connecting to server>" << endl;
         return -1;
     }
@@ -177,8 +148,6 @@ void worker(int *sockfd, bool *_isSuccess, bool *_isTimedOut, double *_tx_Rx_tim
     int client_socket = 0;
     try
     {
-        cout << "-----Worker starts-----" << endl;
-        cout << "Running thread id: : " << std::this_thread::get_id() << endl;
         // Connects client to the server on the specified host-port
         if ((client_socket = connectsocketbyIpPort(server_ip, server_port)) < 0)
             throw client_socket;
@@ -209,7 +178,6 @@ void worker(int *sockfd, bool *_isSuccess, bool *_isTimedOut, double *_tx_Rx_tim
         cout << server_response << endl;
 
         *_isSuccess = true;
-        cout << "SUCCESS" << endl;
     }
     catch (...)
     {   
@@ -218,8 +186,7 @@ void worker(int *sockfd, bool *_isSuccess, bool *_isTimedOut, double *_tx_Rx_tim
         if (!(*_isTimedOut))
         {
             // catches any exceptions
-            cout << "EXCEPTION occured inside loop" << endl;
-            perror("Exception is: ");
+            perror("EXCEPTION occured iwhile submitting: ");
         }
     }
 }
@@ -257,9 +224,7 @@ int main(int argc, char *argv[])
     auto LStart = chrono::high_resolution_clock::now();
     while (loopNum--)
     {
-        cout << "------------New Loop starts------------------------" << endl;
-        cout<<"Main Thread id: "<< std::this_thread::get_id() <<endl;
-        cout<<"Loop id "<<loopNum<<endl;
+        cout << "------------------------- New Submission starts ------------------------" << endl;
         bool *_isSuccess = new bool(false);
         bool *_isTimedOut = new bool(false);
 
@@ -268,7 +233,6 @@ int main(int argc, char *argv[])
 
         /* Creating threads */
         std::thread th(worker, client_socket, _isSuccess, _isTimedOut, _tx_Rx_time);
-        cout << "created thread: " << th.get_id() << endl;
 
         auto future = std::async(std::launch::async, &std::thread::join, &th);
         if (future.wait_for(std::chrono::milliseconds((int) (timeout_seconds * 1000) )) == std::future_status::timeout)
@@ -278,8 +242,8 @@ int main(int argc, char *argv[])
             close(*client_socket);
 
             timeout_count++;
-            cout << "TIMEOUT : "<<timeout_seconds<< " secs" << endl;
-            cout << "Killed client socket after getting timeout: " << (*client_socket) << endl;
+            cerr << "*** TIMEOUT *** "<< endl;
+
         }
         else
         {
@@ -297,9 +261,7 @@ int main(int argc, char *argv[])
         _isTimedOut = NULL;
         _tx_Rx_time = NULL;
 
-        cout<<"Sleeping for "<<sleepTime_sec<<" secs"<<endl;
         sleep(sleepTime_sec);
-        cout<<"exiting loop"<<endl;
     }
 
     // Note: LOOP END time
@@ -315,7 +277,7 @@ int main(int argc, char *argv[])
     double timeout_count_p_sec = timeout_count > 0 ? ((timeout_count / turnAroundTime) * 1000) : 0;
     double other_err_count_p_sec = other_err_count > 0 ? ((other_err_count / turnAroundTime) * 1000) : 0;
 
-    cout << "-------------------per client basis stats-------------------------------" << endl;
+    cout << "========================== per client basis stats =================================" << endl;
     cout << "Accumulated response time (in sec) :" << (accumulated_time / 1000) << endl;
     cout << "Average response time (in sec) :" << (avgRespTime / 1000) << endl;
 
@@ -329,8 +291,7 @@ int main(int argc, char *argv[])
     cout << "Individual client total requests per seconds :" << totalCount_p_sec << endl;
     cout << "Individual client throughput per seconds :" << throughput_p_sec << endl;
     cout << "Individual client timeout requests per seconds :" << timeout_count_p_sec << endl;
-    cout << "Individual client other error requests per seconds :" << other_err_count_p_sec << endl
-         << endl;
+    cout << "Individual client other error requests per seconds :" << other_err_count_p_sec << endl;
 
     return 0;
 }
