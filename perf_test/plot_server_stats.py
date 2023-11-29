@@ -1,4 +1,7 @@
-#!/Users/soumikdutta/miniconda3/bin/python3
+#!/usr/bin/python3
+
+### Thi script is used to analyse and plot dependng upon server side logged data
+
 import matplotlib.pyplot as plt
 from subprocess import run, PIPE
 import os
