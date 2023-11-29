@@ -33,8 +33,8 @@ while [ true ]; do
         sleep 3
     else
     	echo "Starting transferring the log files to the client machine....."
-        # Copy log.txt to a remote location using scp
-        scp "$log_file" "$nc_output_file" "$avg_q_len_file" $client_machine_path
+        # Copy .log to a remote location using scp
+        scp "$log_file" "$nc_output_file" "$avg_q_len_file" "$serviceTime_file" $client_machine_path
         pkill -f "nc -l -p 12345"
         rm -rf temp_files
         break
