@@ -52,9 +52,13 @@ int receiveall(int client_socket, string &data_received)
         close(client_socket);
         return -1;
     }
+    
+    
     datalen = ntohl(tmp);
-    char buffer[datalen];
+    char buffer[datalen+1];
     bytesLeft = datalen;
+    
+    
     while (totalReceived < datalen)
     {
 
@@ -71,12 +75,19 @@ int receiveall(int client_socket, string &data_received)
             cerr << "Error while: <receiving data>" << endl;
             break;
         }
+      
+        
         buffer[datalen] = '\0'; // helps while converting char array to string
+        
         string temp(buffer);
+       
+       
         data_received += temp;
         totalReceived += currentLen;
         bytesLeft -= currentLen;
     }
+    
+    
     return currentLen == -1 ? -1 : 0; // return -1 on failure, 0 on success
 }
 

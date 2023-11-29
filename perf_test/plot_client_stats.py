@@ -1,7 +1,7 @@
-#!/Users/soumikdutta/miniconda3/bin/python3
+#!/Users/bin/python3
 
 ##Give the server ip and port to connect to get the Server side statistics
-server_ip='10.157.3.213'
+server_ip='10.130.154.66'
 server_port = 12345
 
 from subprocess import run, PIPE
@@ -39,7 +39,7 @@ for count in range(minClients,maxClients+steps,steps):
 	sleep_timer=(count/5)
 
 	#Arguments: $numClients $loopNum $sleepTimeSeconds $timeout $pollInterval
-	output = run(['./loadtest.sh', str(count),'10','2', '300', '2'], stdout=PIPE).stdout.splitlines()
+	output = run(['./loadtest.sh', str(count),'10','2', '200', '1'], stdout=PIPE).stdout.splitlines()
 
 	clients.append(int(count))
 	clients_vs_responseTime.append( float( str( output[2] ).split( ':' )[1].rstrip("'") ) )
