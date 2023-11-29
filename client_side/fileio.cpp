@@ -41,6 +41,7 @@ void removeTempFiles(vector<string> files_to_remove)
     }
 }
 
+//Utility function used to log message to file
 void logMessageToFile(const std::string& message) {
 
     std::string directoryPath = "temp_files";
