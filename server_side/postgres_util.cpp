@@ -57,10 +57,12 @@ void Postgres_util::insertGradingDetails(const GradingDetails &details)
         // Construct the SQL string using a string stream
         std::ostringstream sqlStream;
         sqlStream << "INSERT INTO grading_details (trace_id, progress_status, submitted_file, lastupdated, grading_status, grading_output) VALUES ("
-                  << details.trace_id << ", '" << details.progress_status << "', '" << details.submitted_file << "', '"
-                  << timestampStr << "', '" << details.grading_status << "', '" << details.grading_output << "');";
+                  <<  W.quote(details.trace_id )<< "," << W.quote(details.progress_status) << "," << W.quote(details.submitted_file) << ","
+                  << W.quote(timestampStr) << "," << W.quote(details.grading_status) << "," << W.quote(details.grading_output) << ");";
         std::string sql = sqlStream.str();
         // std::cout << sql << std::endl;
+
+        
 
         /* Execute SQL query */
         W.exec(sql);
@@ -91,7 +93,7 @@ GradingDetails Postgres_util::retrieveGradingDetails(string trace_id)
         pqxx::nontransaction N(conn);
 
         // Execute SQL query to retrieve grading details for a specific trace_id
-        string sql = "SELECT * FROM grading_details WHERE trace_id = '" + trace_id + "';";
+        string sql = "SELECT * FROM grading_details WHERE trace_id = " + N.quote(trace_id) + ";";
         result R(N.exec(sql));
 
         // Assume the first row is the result (adjust as needed)
@@ -144,12 +146,12 @@ void Postgres_util::updateGradingDetails(const GradingDetails &details)
         // Construct the SQL string using a string stream
         std::ostringstream updateStream;
         updateStream << "UPDATE grading_details SET "
-                     << "progress_status = '" << details.progress_status << "', "
-                     << "submitted_file = '" << details.submitted_file << "', "
-                     << "lastupdated = '" << timestampStr << "', "
-                     << "grading_status = '" << details.grading_status << "', "
-                     << "grading_output = '" << details.grading_output << "' "
-                     << "WHERE trace_id = '" << details.trace_id<<"';";
+                     << "progress_status = " <<  W.quote(details.progress_status) << ", "
+                     << "submitted_file = " <<  W.quote(details.submitted_file )<< ", "
+                     << "lastupdated = " <<  W.quote(timestampStr) << ", "
+                     << "grading_status = " <<  W.quote(details.grading_status) << ", "
+                     << "grading_output = " <<  W.quote(details.grading_output) << " "
+                     << "WHERE trace_id = " <<  W.quote(details.trace_id)<<";";
 
         std::string sql = updateStream.str();
         //std::cout << "sql: "<<sql << std::endl;
