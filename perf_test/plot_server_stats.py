@@ -88,7 +88,7 @@ with open(server_snapshot_log, 'r') as log_file, open(server_snapshot_nc_log, 'r
 
             #iteration in averageQ_log file
             while service_time_line_iterator<len(service_time_line):
-                parts = service_time_line[avg_q_iterator].split()
+                parts = service_time_line[service_time_line_iterator].split()
                 # Extract the three parts
                 timestamp = parts[0]
                 service_time = parts[1]
