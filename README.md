@@ -21,16 +21,17 @@ change serverip_port in loadtest.sh 		(ip address of server and port of submissi
 #Extract the server_side code on the server using the below command
 tar xvf server_side.tar 
 make 		(Run make on the server side)
+change the client_machine_path in server_snapshot.sh
 # set client_machine_path in server_snapshot.sh script - 
 
 ## Now for performance analysis--
 
 #Server side:
-./submission_server 8080	(1st tab)
+./submission_server 8080 3	(1st tab)
 
-./query_server 9090		(2nd tab)
+./query_server 9090 3		(2nd tab)
 
-./grader_server			(3rd tab)
+./grader_server	6		(3rd tab)
 
 ./server_snapshot		(4th tab)
 
