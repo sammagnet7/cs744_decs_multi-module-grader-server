@@ -4,6 +4,8 @@
 #include <thread>
 #include <string>
 
+#include "fileio.hpp"
+
 using namespace sw::redis;
 
 class Redis_util

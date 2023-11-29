@@ -1,11 +1,11 @@
 #!/bin/bash
 
+### This script is used for generating load by creating parallel submission clients to the server
+
+
 #Enter the server ip:port to submit requests
 serverip_port=10.130.154.66:8080
 queryServerPort=9090
-
-#for bash debugging
-#set -x 
 
 
 if [ $# -ne 5 ]; then
@@ -112,3 +112,6 @@ echo "Overall requests sent per sec:"$overall_totRequests
 echo "Overall throughput per sec:"$overall_throughput
 echo "Overall timeout requests per sec:"$overall_timeoutrequests
 echo "Overall error requests per sec:"$overall_sum_of_errRequets
+
+#At deployment time for deleting uncomment below line
+#rm -rf temp_files

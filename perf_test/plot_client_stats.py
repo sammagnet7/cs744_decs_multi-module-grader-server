@@ -1,5 +1,7 @@
 #!/Users/bin/python3
 
+### This script is used to plot graph by calling loadtest repeated number of times
+
 ##Give the server ip and port to connect to get the Server side statistics
 server_ip='10.130.154.66'
 server_port = 12345
@@ -8,7 +10,7 @@ from subprocess import run, PIPE
 import matplotlib.pyplot as plt
 import time
 import socket
-#from matplotlib.ticker import MultipleLocator
+
 
 minClients = int( input( 'Enter count of minimum number(included) of clients: ' ) )
 maxClients = int( input( 'Enter count of maximum number(included) of clients: ' ) )

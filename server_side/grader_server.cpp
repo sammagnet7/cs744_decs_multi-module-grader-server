@@ -10,8 +10,6 @@
 #include <unistd.h>
 #include <sstream>
 
-#include "fileio.hpp"
-
 using namespace std;
 
 
@@ -48,7 +46,6 @@ int main(int argc, char *argv[])
     logStream<< "Thread-pool created with number of threads: "<< thread_pool_size <<endl;
     logMessageToFile(logStream.str());
 
-    sleep(10);
     
     // Main thread waits for each thread to finish
     for (int i = 0; i < thread_pool_size; i++)

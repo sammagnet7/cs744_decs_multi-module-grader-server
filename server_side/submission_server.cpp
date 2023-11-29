@@ -104,12 +104,18 @@ int main(int argc, char *argv[])
         threads.push_back(std::thread(&Thread_pool::infinite_submission_loop_func, &th_pool));
     }
 
-    cout << "Thread-pool created with number of threads: " << thread_pool_size << endl;
+    std::string log = "Thread-pool created with number of threads: " + thread_pool_size;
+    logMessageToFile( log );
+
+
 
 
     // Creating one single thread for measuring queue length
     std::thread q_len_logging_th(&Thread_pool::logSharedQueueLength, &th_pool);
     q_len_logging_th.detach();
+
+
+
 
 
     while (true)

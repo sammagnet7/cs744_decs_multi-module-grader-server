@@ -20,8 +20,6 @@ int receiveall(int client_socket, string &data)
     ssize_t bytes_received = recv(client_socket, &tmp, sizeof tmp, 0);
     datalen = ntohl(tmp);
 
-    cout << "Thread id: " << std::this_thread::get_id() << ":: File size is: " << datalen << endl;
-
     if (bytes_received <= 0)
     {
         perror("Error receiving source code");
@@ -42,7 +40,6 @@ int receiveall(int client_socket, string &data)
         else if (currentLen == -1)
         {
             perror("Error while receiving data at server");
-            cout << "Thread id: " << std::this_thread::get_id() << ":: Partial data received of size: " << totalReceived;
             close(client_socket);
             break;
         }
@@ -52,7 +49,6 @@ int receiveall(int client_socket, string &data)
         totalReceived += currentLen;
         bytesLeft -= currentLen;
 
-        cout << "Thread id: " << std::this_thread::get_id() << ":: Total data received: " << totalReceived << endl;
     }
     return currentLen == -1 ? -1 : 0; // return -1 on failure, 0 on success
 }
@@ -83,7 +79,7 @@ int receiveId(int client_socket, string &trace_id)
     ss << threadId;
     string thId = ss.str();
     string log = "Thread Id: " + thId + " :: StatusCheck request received for trace_id: " + trace_id;
-    cout << log << endl;
+    logMessageToFile(log);
 
     return 0; // return -1 on failure, 0 on success
 }
@@ -105,13 +101,11 @@ int sendall(int socket, string buf, int datalen)
         if (currentLen == -1)
         {
             perror("Error while sending data to the server");
-            cout << "Partial data sent of size: " << totalsent;
             break;
         }
         totalsent += currentLen;
         bytesleft -= currentLen;
     }
-    cout << "Total data sent from this machine: " << totalsent << endl;
 
     return currentLen == -1 ? -1 : 0; // return -1 on failure, 0 on success
 }
@@ -201,7 +195,7 @@ GradingDetails run_prog(string recvd_string, string thread_id, vector<string> &f
     return details;
 }
 
-// this function handles the worker thread
+// this function handles the worker thread for Submission server
 void submission_worker_handler(int client_socket, string traceId)
 {
     Redis_util red_util;
@@ -214,7 +208,7 @@ void submission_worker_handler(int client_socket, string traceId)
     ss << threadId;
     string thId = ss.str();
     string log = "Submission Worker started with thread Id: " + thId + " with socket Id: " + to_string(client_socket) + " and with traceId: " + traceId;
-    cout << log << endl;
+    logMessageToFile(log);
 
     string received = "";
     // Receive the source code from the client
@@ -232,6 +226,7 @@ void submission_worker_handler(int client_socket, string traceId)
     details.grading_status = "NIL";
     details.grading_output = "NIL";
 
+    //Insert into DB and push to queue for future evaluation
     pg_util.insertGradingDetails(details);
     red_util.pushBack(traceId);
 
@@ -249,6 +244,7 @@ void submission_worker_handler(int client_socket, string traceId)
     return;
 }
 
+// this function handles the worker thread for Grader server
 void grader_worker_handler()
 {
     Redis_util red_util;
@@ -261,12 +257,12 @@ void grader_worker_handler()
     ss << threadId;
     string thId = ss.str();
     string log = "Grader Worker started with thread Id: " + thId;
-    cout << log << endl;
+    logMessageToFile(log);
 
     // List to add all the files being created throughout the process
     vector<string> files_to_remove;
 
-    // poppiing from shared queue
+    // Pop from shared queue
     std::string traceId = red_util.pullFront();
 
     // retrieve the entry from DB
@@ -276,19 +272,23 @@ void grader_worker_handler()
     details.progress_status = "IN_GCC";
     pg_util.updateGradingDetails(details);
 
-    // evaluate
+    // Actual GCC evaluation happen here
     GradingDetails grading_response = run_prog(details.submitted_file, thId, files_to_remove);
 
+    //Updating status
     grading_response.trace_id = traceId;
     grading_response.progress_status = "DONE";
     grading_response.submitted_file = details.submitted_file;
 
+    //Update to DB
     pg_util.updateGradingDetails(grading_response);
 
+    //Free server memory
     removeTempFiles(files_to_remove);
     return;
 }
 
+// this function handles the worker thread for statusCheck server
 void statusCheck_worker_handler(int client_socket)
 {
     Redis_util red_util;
@@ -302,9 +302,10 @@ void statusCheck_worker_handler(int client_socket)
     ss << threadId;
     string thId = ss.str();
     string log = "StatusCheck Worker started with thread Id: " + thId + " with socket Id: " + to_string(client_socket);
-    cout << log << endl;
+    logMessageToFile(log);
 
     string received_trace_id = "";
+
     // Receive the source code from the client
     if (int resp_code = receiveId(client_socket, received_trace_id) != 0)
     {
@@ -313,6 +314,7 @@ void statusCheck_worker_handler(int client_socket)
         return;
     }
 
+    //Get the details from DB w.r.t trace_id
     details = pg_util.retrieveGradingDetails(received_trace_id);
 
 
@@ -331,7 +333,7 @@ void statusCheck_worker_handler(int client_socket)
         ss << threadId;
         string thId = ss.str();
         string log = "Thread Id: " + thId + " with socket Id: " + to_string(client_socket) + " :: TraceId: " +details.trace_id + " Position found in shared queue: " + to_string(pos);
-        cout << log << endl;
+        logMessageToFile(log);
 
         if(pos == -1){
             response = "Your grading request ID <" + details.trace_id + "> has been accepted. It is currently in evaluation process.\n";
@@ -353,7 +355,7 @@ void statusCheck_worker_handler(int client_socket)
 
     }
 
-    cout<<response<<endl;
+    logMessageToFile(response);
     
     // Send response
     if (int resp_code = sendall(client_socket, response.c_str(), response.length()) != 0)
@@ -367,6 +369,7 @@ void statusCheck_worker_handler(int client_socket)
     return;
 }
 
+//This returns the shared queue length
 long long getSharedQueueLength()
 {
     Redis_util red_util;

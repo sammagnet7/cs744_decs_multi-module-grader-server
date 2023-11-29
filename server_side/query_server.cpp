@@ -100,13 +100,12 @@ int main(int argc, char *argv[])
     std::vector<std::thread> threads;
     Thread_pool th_pool;
 
+    //Creating Thread pool here
     for (int i = 0; i < thread_pool_size; i++)
     {
         threads.push_back(std::thread(&Thread_pool::infinite_statusCheck_loop_func, &th_pool));
     }
     
-    cout<< "Thread-pool created with number of threads: "<< thread_pool_size <<endl;
-
     
     while (true)
     {
@@ -115,6 +114,7 @@ int main(int argc, char *argv[])
         if (client_socket < 0)
             continue;
 
+        //Drop connections if queue is full
         if(th_pool.getLocalQueueLen() < th_pool.Q_MAX_SIZE)
             th_pool.push(client_socket);
         else

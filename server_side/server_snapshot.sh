@@ -1,5 +1,7 @@
 #!/bin/bash
 
+### This script is used to send the server side generated logs to the client side when finally server is killed.
+
 #path to client machine where to send the logs
 client_machine_path="ankur@192.168.0.105:~/Documents"
  
@@ -49,4 +51,3 @@ while [ true ]; do
         break
     fi
 done
-

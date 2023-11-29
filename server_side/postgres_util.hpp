@@ -6,6 +6,7 @@
 
 #include "lib/pg/include/pqxx/pqxx"
 #include "grading_details.hpp"
+#include "fileio.hpp"
 
 using namespace std;
 using namespace pqxx;
@@ -18,7 +19,8 @@ public:
     void updateGradingDetails(const GradingDetails &details);
 
 private:
-    static pqxx::connection dbconnect();
-    static void printGradingDetails(const GradingDetails& details);
     static const std::string conn_addr_pg;
+
+    static pqxx::connection dbconnect();
+    static void printGradingDetails(const GradingDetails& details);   
 };

@@ -1,12 +1,13 @@
 #!/usr/bin/python3
+
+
+### Thi script is used to analyse and plot dependng upon server side logged data
+
 import matplotlib.pyplot as plt
 from subprocess import run, PIPE
 import os
 
-plt.interactive(False)
-
-#Received file name
-
+#Received files from server side
 server_snapshot_log = os.path.expanduser('~/Documents/server_snapshot.log')
 server_snapshot_nc_log = os.path.expanduser('~/Documents/server_snapshot_nc.log')
 server_queue_size_log = os.path.expanduser('~/Documents/avgQ.log')
@@ -20,7 +21,7 @@ averageNumberOfThreads = []
 averageQueueLength = []
 averageServiceTime = []
 
-
+#Open all the files
 with open(server_snapshot_log, 'r') as log_file, open(server_snapshot_nc_log, 'r') as nc_file, open(server_queue_size_log,'r') as q_size_log, open(server_service_time_log,'r') as service_time_log:
     log_lines = log_file.readlines()
     nc_lines = nc_file.readlines()
@@ -102,14 +103,10 @@ with open(server_snapshot_log, 'r') as log_file, open(server_snapshot_nc_log, 'r
                 service_time_line_iterator+=1
                 
 
-
-
-
             averageCpuUtilization.append(0 if cnt_log_line == 0 else tot_cpu / cnt_log_line)
             averageNumberOfThreads.append(0 if cnt_log_line == 0 else tot_thread / cnt_log_line)
             averageQueueLength.append(0 if cnt_q_line == 0 else tot_queue_length / cnt_q_line)
             averageServiceTime.append(0 if cnt_service_time_line == 0 else tot_service_time / cnt_service_time_line)
-
 
         elif n=="exit":
             break
@@ -154,23 +151,6 @@ axs[0,0].grid(color = 'green', linestyle = '--', linewidth = 0.5)
 axs[0,1].grid(color = 'green', linestyle = '--', linewidth = 0.5)
 axs[1,0].grid(color = 'green', linestyle = '--', linewidth = 0.5)
 axs[1,1].grid(color = 'green', linestyle = '--', linewidth = 0.5)
-
-
-# fig, axs = plt.subplots(3,sharex=True, sharey=True)
-# fig.suptitle("Number of clients")
-# axs[0].plot(clients,averageNumberOfThreads, color='magenta', marker='o')
-# axs[1].plot(clients,averageCpuUtilization, color='black', marker='o')
-# axs[2].plot(clients,averageQueueLength, color='red', marker='o')
-
-# axs[0].set(ylabel='Average Thread counts')
-# axs[1].set(ylabel='Cpu Utilization')
-# axs[2].set(ylabel='Average Queue Length')
-
-
-
-# axs[0].grid(color = 'green', linestyle = '--', linewidth = 0.5)
-# axs[1].grid(color = 'green', linestyle = '--', linewidth = 0.5)
-# axs[2].grid(color = 'green', linestyle = '--', linewidth = 0.5)
 
 fig.tight_layout()
 

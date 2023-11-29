@@ -5,12 +5,14 @@ const std::string Redis_util::conn_addr_redis = "tcp://10.157.3.213:6379/";
 /**Choose a suitable queue name for redis server*/
 const std::string Redis_util::queue_name = "jobs";
 
+//This function creates static connection object for connecting to Redis shared queue
 auto Redis_util::connect()
 {
     auto redis = Redis(conn_addr_redis);
     return redis;
 }
 
+//Utility function to ping Redis queue service
 void Redis_util::ping()
 {
     auto redis = connect();
@@ -21,9 +23,10 @@ void Redis_util::ping()
     std::string thId = ss.str();
     std::string log = "Thread Id: " + thId + " :: " + redis.ping();
 
-    std::cout << log << std::endl;
+    logMessageToFile(log);
 }
 
+//Utility function to push element into Redis queue
 void Redis_util::pushBack(std::string traceId)
 {
     try
@@ -38,14 +41,15 @@ void Redis_util::pushBack(std::string traceId)
         ss << threadId;
         std::string thId = ss.str();
         std::string log = "Thread Id: " + thId + " :: Pushed TraceId: " + traceId;
-        std::cout << log << std::endl;
+        logMessageToFile(log);
     }
     catch (const std::exception &e)
     {
-        std::cerr << e.what() << std::endl;
+        logMessageToFile( e.what() );
     }
 }
 
+//Utility function to pull element from Redis queue
 std::string Redis_util::pullFront()
 {
     std::string traceId = "";
@@ -61,11 +65,12 @@ std::string Redis_util::pullFront()
             auto key = result->first;
             auto value = result->second;
             traceId = result->second;
-            std::cout << "Key: " << key << ", Value: " << value << std::endl;
+            std::string log = "Key: "+ key + ", Value: " + value;
+            logMessageToFile( log );
         }
         else
         {
-            std::cout << "No elements in the list." << std::endl;
+            logMessageToFile( "No elements in the list."  );
         }
 
         /*LOGGING*/
@@ -74,15 +79,15 @@ std::string Redis_util::pullFront()
         ss << threadId;
         std::string thId = ss.str();
         std::string log = "Thread Id: " + thId + " :: Popped TraceId: " + traceId;
-        std::cout << log << std::endl;
+       logMessageToFile( log );
     }
     catch (const sw::redis::ProtoError &e)
     {
-        std::cerr << e.what() << std::endl;
+        logMessageToFile( e.what() );
     }
     catch (const std::exception &e)
     {
-        std::cerr << e.what() << std::endl;
+        logMessageToFile( e.what() );
     }
     return traceId;
 }
@@ -97,7 +102,7 @@ long long Redis_util::getLength()
     }
      catch (const std::exception &e)
     {
-        std::cerr << e.what() << std::endl;
+        logMessageToFile( e.what() );
     }
 }
 
@@ -126,6 +131,6 @@ int Redis_util::getPos(std::string trace_id)
     catch (const sw::redis::ProtoError &e)
     {
         
-        std::cerr << e.what() << std::endl;
+        logMessageToFile( e.what() );
     }
 }

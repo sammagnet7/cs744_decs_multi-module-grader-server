@@ -1,14 +1,18 @@
 #include "thread_pool.hpp"
 #include "gradingserver_worker.hpp"
 
+//Constructor for Threadpool
 Thread_pool::Thread_pool() : task_queue(), queue_mutex(), mutex_condition(), server_live(true)
 {
 }
 
+//Destructor for Threadpool
 Thread_pool::~Thread_pool()
 {
 }
 
+
+//This is the method for generating Unique Id for Trace_ids
 long long Thread_pool::getUniqueId()
 {
     std::random_device rd;
@@ -18,6 +22,7 @@ long long Thread_pool::getUniqueId()
     return id;
 }
 
+//Pushes socket entry into task queue
 void Thread_pool::push(int sock)
 {
     std::unique_lock<std::mutex> lock(queue_mutex);
@@ -26,6 +31,7 @@ void Thread_pool::push(int sock)
     mutex_condition.notify_one();
 }
 
+// continue running function for Submission server
 void Thread_pool::infinite_submission_loop_func()
 {
     int sockfd;
@@ -53,6 +59,7 @@ void Thread_pool::infinite_submission_loop_func()
     }
 }
 
+// continue running function for Grading server
 void Thread_pool::infinite_grading_loop_func()
 {
     /* LOGGING */
@@ -61,7 +68,7 @@ void Thread_pool::infinite_grading_loop_func()
     ss << threadId;
     std::string thId = ss.str();
     std::string log = "Thread Id: " + thId + " :: Grading Worker starts";
-    std::cout << log << std::endl;
+    logMessageToFile(log);
 
     while (true)
     {
@@ -76,6 +83,7 @@ void Thread_pool::infinite_grading_loop_func()
     }
 }
 
+// continue running function for StatusCheck server
 void Thread_pool::infinite_statusCheck_loop_func()
 {
     int sockfd;
@@ -101,6 +109,7 @@ void Thread_pool::infinite_statusCheck_loop_func()
     }
 }
 
+//gives local task queue length
 int Thread_pool::getLocalQueueLen()
 {
     std::unique_lock<std::mutex> lock(queue_mutex);
@@ -109,6 +118,7 @@ int Thread_pool::getLocalQueueLen()
     return size;
 }
 
+//logs shared queue length to the log file
 void Thread_pool::logSharedQueueLength()
 {
 
@@ -156,10 +166,11 @@ void Thread_pool::logSharedQueueLength()
     }
     else
     {
-        std::cout << "Error opening the file." << std::endl;
+        std::cerr << "Error opening the file." << std::endl;
     }
 }
 
+//logs service time taken, into log file
 void Thread_pool::logServiceTime( long serviceTime )
 {
 
@@ -190,6 +201,6 @@ void Thread_pool::logServiceTime( long serviceTime )
     }
     else
     {
-        std::cout << "Error opening the file." << std::endl;
+        std::cerr << "Error opening the file." << std::endl;
     }
 }

@@ -8,6 +8,8 @@
 #include <filesystem>
 #include <random>
 
+#include "fileio.hpp"
+
 class Thread_pool
 {
 

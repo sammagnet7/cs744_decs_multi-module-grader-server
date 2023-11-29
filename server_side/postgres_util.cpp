@@ -1,7 +1,9 @@
 #include "postgres_util.hpp"
 
+//Enter the connection string for Postgre DB here
 const std::string Postgres_util::conn_addr_pg = "postgresql://cs744:cs744@10.157.3.213:5432/autograder?connect_timeout=10";
 
+//This function creates static connection object for connecting to DB
 pqxx::connection Postgres_util::dbconnect()
 {
     connection conn(conn_addr_pg);
@@ -13,7 +15,7 @@ pqxx::connection Postgres_util::dbconnect()
         ss << threadId;
         std::string thId = ss.str();
         std::string log = "Thread Id: " + thId + " :: Opened database successfully: " + conn.dbname();
-        std::cout << log << std::endl;
+        logMessageToFile( log );
     }
     else
     {
@@ -23,14 +25,14 @@ pqxx::connection Postgres_util::dbconnect()
         ss << threadId;
         std::string thId = ss.str();
         std::string log = "Thread Id: " + thId + " :: Can't open database";
-        std::cout << log << std::endl;
+        logMessageToFile( log );
 
         throw runtime_error("Failed to open database connection");
     }
     return conn;
 }
 
-// Function to print GradingDetails
+// static Function to print GradingDetails
 void Postgres_util::printGradingDetails(const GradingDetails& details) {
     std::cout << "Trace ID: " << details.trace_id << std::endl;
     std::cout << "Progress Status: " << details.progress_status << std::endl;
@@ -40,6 +42,7 @@ void Postgres_util::printGradingDetails(const GradingDetails& details) {
     std::cout << "Grading Output: " << details.grading_output << std::endl;
 }
 
+//Function for inserting to DB
 void Postgres_util::insertGradingDetails(const GradingDetails &details)
 {
     try
@@ -60,7 +63,8 @@ void Postgres_util::insertGradingDetails(const GradingDetails &details)
                   <<  W.quote(details.trace_id )<< "," << W.quote(details.progress_status) << "," << W.quote(details.submitted_file) << ","
                   << W.quote(timestampStr) << "," << W.quote(details.grading_status) << "," << W.quote(details.grading_output) << ");";
         std::string sql = sqlStream.str();
-        // std::cout << sql << std::endl;
+        
+        logMessageToFile( sql ); 
 
         
 
@@ -74,15 +78,16 @@ void Postgres_util::insertGradingDetails(const GradingDetails &details)
         std::stringstream ss;
         ss << threadId;
         std::string thId = ss.str();
-        std::string log = "Thread Id: " + thId + " :: Records inserted successfully where TraceId: " + details.trace_id;
-        std::cout << log << std::endl;
+        std::string log = "Thread Id: " + thId + " :: Records inserted successfully where TraceId: " + details.trace_id;       
+        logMessageToFile( log );
     }
     catch (const std::exception &e)
     {
-        std::cerr << e.what() << std::endl;
+        logMessageToFile( e.what() );
     }
 }
 
+//This function retrieves Grading details from the DB
 GradingDetails Postgres_util::retrieveGradingDetails(string trace_id)
 {
     GradingDetails details;
@@ -117,18 +122,19 @@ GradingDetails Postgres_util::retrieveGradingDetails(string trace_id)
         ss << threadId;
         std::string thId = ss.str();
         std::string log = "Thread Id: " + thId + " :: Records retrieved successfully where TraceId: " + details.trace_id;
-        std::cout << log << std::endl;
+        logMessageToFile(log);
 
         conn.close();
     }
     catch (const std::exception &e)
     {
-        std::cerr << e.what() << std::endl;
+        logMessageToFile( e.what() );
     }
 
     return details;
 }
 
+//This function updates Grading details to DB
 void Postgres_util::updateGradingDetails(const GradingDetails &details)
 {   
     try
@@ -167,10 +173,10 @@ void Postgres_util::updateGradingDetails(const GradingDetails &details)
         ss << threadId;
         std::string thId = ss.str();
         std::string log = "Thread Id: " + thId + " :: Records updated successfully where TraceId: " + details.trace_id;
-        std::cout << log << std::endl;
+        logMessageToFile(log);
     }
     catch (const std::exception &e)
     {
-        std::cerr << e.what() << std::endl;
+        logMessageToFile(e.what());
     }
 }
