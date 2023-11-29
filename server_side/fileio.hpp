@@ -21,6 +21,6 @@ void save_to_file(string filename, string input);
 // removes all the temporarily created files
 void removeTempFiles(vector<string> files_to_remove);
 
-
+void logMessageToFile(const std::string& message);
 
 #endif

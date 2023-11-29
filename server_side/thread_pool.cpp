@@ -101,3 +101,37 @@ void Thread_pool::logQueueLength(){
         std::cout << "Error opening the file." << std::endl;
     }
 }
+
+void Thread_pool::logServiceTime( long serviceTime )
+{
+
+    std::string directoryPath = "temp_files";
+    std::string filePath = "temp_files/serviceTime.log";
+
+    // Check if the directory exists or create it if it doesn't
+    if (!std::filesystem::exists(directoryPath))
+    {
+        std::filesystem::create_directory(directoryPath);
+    }
+
+    // Open the file inside the directory
+    std::ofstream file(filePath, std::ios::app);
+
+    if (file.is_open())
+    {
+        auto timenow = chrono::system_clock::to_time_t(chrono::system_clock::now());
+
+        char curr_time[100]; // Buffer to hold the formatted time
+        std::strftime(curr_time, sizeof(curr_time), "%H:%M:%S", std::localtime(&timenow));
+        string curr_time_(curr_time);
+
+        std::string serviceTimeEntry = curr_time_ + " " + std::to_string(serviceTime);
+
+        file << serviceTimeEntry << std::endl;
+        file.close();
+    }
+    else
+    {
+        std::cout << "Error opening the file." << std::endl;
+    }
+}
