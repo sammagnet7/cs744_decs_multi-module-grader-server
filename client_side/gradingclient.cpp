@@ -46,7 +46,7 @@ int receiveall(int client_socket, string &data_received)
     }
     datalen = ntohl(tmp);
 
-    char buffer[datalen];
+    char buffer[datalen+1];
     bytesLeft = datalen;
     while (totalReceived < datalen)
     {
@@ -97,7 +97,6 @@ int sendall(int socket, string buf, int datalen)
         }
         totalsent += currentLen;
         bytesleft -= currentLen;
-        std::cout << "File data sent: " << totalsent << " on socket: " << socket << endl;
     }
     return currentLen == -1 ? -1 : 0; // return -1 on failure, 0 on success
 }
@@ -283,9 +282,10 @@ int main(int argc, char *argv[])
     double other_err_count_p_sec = other_err_count > 0 ? ((other_err_count / turnAroundTime) * 1000) : 0;
 
     cout << "============================== per client basis stats ======================================" << endl;
+    
     cout << "Accumulated response time (in sec) :" << (accumulated_time / 1000) << endl;
     cout << "Average response time (in sec) :" << (avgRespTime / 1000) << endl;
-
+    
     // request sent should be == throughput + timeout + error rate
     cout << "Number of total requests sent :" << totalCount << endl;           // total requests
     cout << "Number of successful responses :" << successCount << endl;        // throughput
@@ -296,8 +296,7 @@ int main(int argc, char *argv[])
     cout << "Individual client total requests per seconds :" << totalCount_p_sec << endl;
     cout << "Individual client throughput per seconds :" << throughput_p_sec << endl;
     cout << "Individual client timeout requests per seconds :" << timeout_count_p_sec << endl;
-    cout << "Individual client other error requests per seconds :" << other_err_count_p_sec << endl
-         << endl;
+    cout << "Individual client other error requests per seconds :" << other_err_count_p_sec << endl;
 
     return 0;
 }
