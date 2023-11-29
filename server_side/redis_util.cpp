@@ -1,6 +1,8 @@
 #include "redis_util.hpp"
 
+/**Modify connection string depending upon Redis server address*/
 const std::string Redis_util::conn_addr_redis = "tcp://10.157.3.213:6379/";
+/**Choose a suitable queue name for redis server*/
 const std::string Redis_util::queue_name = "jobs";
 
 auto Redis_util::connect()

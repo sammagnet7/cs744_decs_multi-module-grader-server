@@ -1,8 +1,9 @@
 #!/bin/bash
 
+#path to client machine where to send the logs
 client_machine_path="ankur@192.168.0.105:~/Documents"
+ 
 
-#variable 
 averageCpuUtilization=0
 averageActiveThreads=0
 count=0
@@ -23,6 +24,7 @@ while [ true ]; do
 
         # Start listening on port 12345 and append to the nc output file with timestamp
         { echo "$timestamp"; nc -l -p 12345; } >> "$nc_output_file" &
+
         # Get active threads and CPU utilization with a timestamp and append to the same line in the log file
         threads_by_submission_server=$(ps -eLf | grep "./submission_server 8080" | awk 'NR==1{print $6}')
         threads_by_query_server=$(ps -eLf | grep "./query_server 9090" | awk 'NR==1{print $6}')
@@ -36,7 +38,7 @@ while [ true ]; do
         sleep 3
     else
         echo "Starting transferring the log files to the client machine....."
-        # Copy log.txt to a remote location using scp
+        # Copy .log to a remote location using scp
         scp "$log_file" "$nc_output_file" "$avg_q_len_file" "$serviceTime_file" $client_machine_path
         pkill -f "nc -l -p 12345"
         rm -rf temp_files
