@@ -1,7 +1,7 @@
 # Systems_IITB
 Git repo link:  https://github.com/sammagnet7/Systems_IITB.git
 
-##client_side
+## client_side
 cd Systems_IITB
 
 # Make a zip of server_side folder and send to server side machine using scp command 	(scp hostname@ip:~/Folder)
@@ -25,7 +25,7 @@ make 		(Run make on the server side)
 
 ## Now for performance analysis--
 
-#Server side:
+# Server side:
 ./submission_server 8080	(1st tab)
 
 ./query_server 9090		(2nd tab)
