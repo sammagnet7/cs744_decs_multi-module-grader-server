@@ -1,12 +1,14 @@
 #!/bin/bash
+### This script is used to send the server side generated logs to the client side when finally server is killed.
 
-client_machine_path="ankur@10.96.20.80:~/Documents"
+client_machine_path="ankur@10.96.30.57:~/Documents"
 
 
 mkdir -p temp_files
 
 log_file="temp_files/server_snapshot.log"
 nc_output_file="temp_files/server_snapshot_nc.log"
+service_time_log="temp_files/serviceTime.log"
 
 while [ true ]; do
     COND=$(ps aux | grep "server 8080" | wc -l)
@@ -29,7 +31,7 @@ while [ true ]; do
     else
     	echo "Starting transferring the log files to the client machine....."
         # Copy log.txt to a remote location using scp
-        scp "$log_file" "$nc_output_file" $client_machine_path
+        scp "$log_file" "$nc_output_file" "$service_time_log" $client_machine_path
         pkill -f "nc -l -p 12345"
         rm -rf temp_files
         break

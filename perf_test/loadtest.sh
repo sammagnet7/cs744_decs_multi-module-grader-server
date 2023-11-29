@@ -1,4 +1,5 @@
 #!/bin/bash
+### This script is used for generating load by creating parallel submission clients to the server
 
 #Enter the server ip:port to submit requests
 serverip_port=10.130.154.66:8080

@@ -23,8 +23,6 @@ int receiveall(int client_socket, string &data)
     uint32_t tmp,datalen;  
     ssize_t bytes_received = recv(client_socket, &tmp, sizeof tmp, 0);
     datalen = ntohl(tmp);
-    
-    cout<<"Thread id: "<< std::this_thread::get_id()<< ":: File size is: "<<datalen<<endl;
 
     if (bytes_received <= 0)
     {
@@ -45,7 +43,6 @@ int receiveall(int client_socket, string &data)
         else if (currentLen == -1)
         {
             perror("Error while receiving data at server");
-            cout <<"Thread id: "<< std::this_thread::get_id()<< ":: Partial data received of size: " << totalReceived;
             close(client_socket);
             break;
         }
@@ -54,8 +51,6 @@ int receiveall(int client_socket, string &data)
         data += temp;
         totalReceived += currentLen;
         bytesLeft -= currentLen;
-
-        cout<<"Thread id: "<< std::this_thread::get_id()<< ":: Total data received: "<<totalReceived<<endl;
     }
     return currentLen == -1 ? -1 : 0; // return -1 on failure, 0 on success
 }
@@ -77,12 +72,10 @@ int sendall(int socket, string buf, int datalen)
         if (currentLen == -1)
         {
             perror("Error while sending data to the server");
-            cout << "Partial data sent of size: " << totalsent;
             break;
         }
         totalsent += currentLen;
         bytesleft -= currentLen;
-        //cout << "Total data sent from this machine: " << totalsent << endl;
     }
     return currentLen == -1 ? -1 : 0; // return -1 on failure, 0 on success
 }
@@ -187,9 +180,18 @@ void worker_handler(int client_socket)
 
     files_to_remove.push_back(recv_filename);
     
+    auto serviceStart = chrono::high_resolution_clock::now();
+    
     //evaluate
     string final_response = run_prog(received , to_string(client_socket),  files_to_remove);
 
+    auto serviceEnd = chrono::high_resolution_clock::now();
+ 
+    // Calculating total time taken for servicing one request
+    double serviceTime = chrono::duration_cast<chrono::milliseconds>(serviceEnd - serviceStart).count();
+
+    logServiceTime(serviceTime);
+    
     // Send response
     if (int resp_code = sendall(client_socket, final_response.c_str(), final_response.length()) != 0){
         // cleaning
@@ -202,4 +204,37 @@ void worker_handler(int client_socket)
     close(client_socket);
     removeTempFiles(files_to_remove);
     return;
+}
+
+
+//logs service time taken, into log file
+void logServiceTime( long serviceTime )
+{
+    std::string directoryPath = "temp_files";
+    std::string filePath = "temp_files/serviceTime.log";
+
+    // Check if the directory exists or create it if it doesn't
+    if (!std::filesystem::exists(directoryPath))
+    {
+        std::filesystem::create_directory(directoryPath);
+    }
+ 
+    // Open the file inside the directory
+    std::ofstream file(filePath, std::ios::app);
+ 
+    if (file.is_open())
+    {
+        auto timenow = chrono::system_clock::to_time_t(chrono::system_clock::now());
+        char curr_time[100]; // Buffer to hold the formatted time
+        std::strftime(curr_time, sizeof(curr_time), "%H:%M:%S", std::localtime(&timenow));
+        string curr_time_(curr_time);
+        std::string serviceTimeEntry = curr_time_ + " " + std::to_string(serviceTime);
+        file << serviceTimeEntry << std::endl;
+        file.close();
+    }
+
+    else
+    {
+        std::cerr << "Error opening the file." << std::endl;
+    }
 }
