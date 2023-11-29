@@ -39,3 +39,23 @@ void removeTempFiles(vector<string> files_to_remove)
         _remove(file);
     }
 }
+
+void logMessageToFile(const std::string& message) {
+
+    std::string directoryPath = "temp_files";
+    std::string filePath = "temp_files/overall.log";
+
+    // Check if the directory exists or create it if it doesn't
+    if (!std::filesystem::exists(directoryPath))
+    {
+        std::filesystem::create_directory(directoryPath);
+    }
+
+    std::ofstream outputFile(filePath, std::ios::app); // 'app' for append mode
+    if (outputFile.is_open()) {
+        outputFile << message << std::endl;
+        outputFile.close();
+    } else {
+        std::cerr << "Error opening file: " << filePath << std::endl;
+    }
+}

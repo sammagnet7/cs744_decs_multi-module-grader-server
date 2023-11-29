@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include<thread>
 #include <unistd.h>
+#include "fileio.hpp"
 
 using namespace std;
 
@@ -40,7 +41,10 @@ int main(int argc, char *argv[])
         threads.push_back(std::thread(&Thread_pool::infinite_grading_loop_func, &th_pool));
     }
     
-    cout<< "Thread-pool created with number of threads: "<< thread_pool_size <<endl;
+    /** LOGGING @server into temp_files/overall.log */
+    std::ostringstream logStream;
+    logStream<< "Thread-pool created with number of threads: "<< thread_pool_size <<endl;
+    logMessageToFile(logStream.str());
 
     sleep(10);
     
