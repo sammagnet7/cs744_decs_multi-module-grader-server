@@ -131,9 +131,9 @@ GradingDetails run_prog(string recvd_string, string thread_id, vector<string> &f
     string diffcheck_filename = "diffcheck_" + thread_id + ".log";
 
     // making all the commands
+    string RUN_TIMEOUT = "timeout --foreground 1m";
     string compile_command = "g++ -o " + obj_filename + " " + recv_filename + " > " + compiler_output_filename + " 2>&1";
-    string timeout = "timeout --foreground 2m";
-    string prog_run_command = "{ " + timeout + " ./" + obj_filename + "; } > " + prog_output_filename + " 2>&1";
+    string prog_run_command = "{ " + RUN_TIMEOUT + " ./" + obj_filename + "; } > " + prog_output_filename + " 2>&1";
     string diff_command = "diff -u " + expected_output_filename + " " + actual_output_filename + " > " + diffcheck_filename + " 2>&1";
 
     // adds the temp files to the removing list
@@ -225,13 +225,12 @@ void submission_worker_handler(int client_socket, string traceId)
         return;
     }
 
-    // Sample GradingDetails object
-
+    // Received request is being queued for grading in future
     details.trace_id = traceId;
     details.progress_status = "IN_QUEUE";
     details.submitted_file = received;
-    details.grading_status = "PENDING";
-    details.grading_output = "No output yet";
+    details.grading_status = "NIL";
+    details.grading_output = "NIL";
 
     pg_util.insertGradingDetails(details);
     red_util.pushBack(traceId);
@@ -274,7 +273,7 @@ void grader_worker_handler()
     details = pg_util.retrieveGradingDetails(traceId);
 
     // modify progress status into DB
-    details.progress_status = "IN_PROGRESS";
+    details.progress_status = "IN_GCC";
     pg_util.updateGradingDetails(details);
 
     // evaluate
@@ -341,7 +340,7 @@ void statusCheck_worker_handler(int client_socket)
             response = "Your grading request ID <" + details.trace_id + "> has been accepted. It is currently at position <" +to_string(pos) + "> in the queue.\n";
         }
     }
-    else if (details.progress_status == "IN_PROGRESS")
+    else if (details.progress_status == "IN_GCC")
     {
         response = "Your grading request ID <" + details.trace_id + "> has been accepted. It is currently in evaluation process.\n";
     }

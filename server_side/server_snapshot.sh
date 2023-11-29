@@ -18,6 +18,7 @@ serviceTime_file="temp_files/serviceTime.log"
 
 while [ true ]; do
     COND=$(ps aux | grep "grader_server" | wc -l)
+
     if [ $COND -gt 1 ]; then
         # Get the current timestamp
         timestamp=$(date "+%H:%M:%S")
@@ -41,7 +42,10 @@ while [ true ]; do
         # Copy .log to a remote location using scp
         scp "$log_file" "$nc_output_file" "$avg_q_len_file" "$serviceTime_file" $client_machine_path
         pkill -f "nc -l -p 12345"
-        rm -rf temp_files
+
+        #At deployment time for deleting uncomment below line
+        #rm -rf temp_files
+
         break
     fi
 done

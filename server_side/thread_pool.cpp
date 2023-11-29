@@ -66,6 +66,7 @@ void Thread_pool::infinite_grading_loop_func()
     while (true)
     {
         auto serviceStart = chrono::high_resolution_clock::now();
+        
         grader_worker_handler();
 
         auto serviceEnd = chrono::high_resolution_clock::now();

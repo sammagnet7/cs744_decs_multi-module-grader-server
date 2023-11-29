@@ -1,4 +1,4 @@
-#!/Users/soumikdutta/miniconda3/bin/python3
+#!/usr/bin/python3
 import matplotlib.pyplot as plt
 from subprocess import run, PIPE
 import os
@@ -181,4 +181,3 @@ os.remove(server_snapshot_log)
 os.remove(server_snapshot_nc_log)
 os.remove(server_queue_size_log)
 os.remove(server_service_time_log)
-

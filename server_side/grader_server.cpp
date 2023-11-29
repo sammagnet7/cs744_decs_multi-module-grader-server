@@ -8,6 +8,8 @@
 #include <stdint.h>
 #include<thread>
 #include <unistd.h>
+#include <sstream>
+
 #include "fileio.hpp"
 
 using namespace std;
