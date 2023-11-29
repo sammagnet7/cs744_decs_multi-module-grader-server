@@ -65,7 +65,16 @@ void Thread_pool::infinite_grading_loop_func()
 
     while (true)
     {
+        auto serviceStart = chrono::high_resolution_clock::now();
+
         grader_worker_handler();
+
+        auto serviceEnd = chrono::high_resolution_clock::now();
+
+        // Calculating total time taken for servicing one request
+        double serviceTime = chrono::duration_cast<chrono::milliseconds>(serviceEnd - serviceStart).count();
+
+        logServiceTime( serviceTime );
     }
 }
 
@@ -128,9 +137,10 @@ void Thread_pool::logSharedQueueLength()
 
             char curr_time[100]; // Buffer to hold the formatted time
             std::strftime(curr_time, sizeof(curr_time), "%H:%M:%S", std::localtime(&timenow));
-            
+
             long long q_length = getSharedQueueLength();
-            if (q_length == 0){
+            if (q_length == 0)
+            {
                 sleep(5);
                 continue;
             }
@@ -145,6 +155,40 @@ void Thread_pool::logSharedQueueLength()
         }
 
         file.close(); // File closed after the loop finishes writing data
+    }
+    else
+    {
+        std::cout << "Error opening the file." << std::endl;
+    }
+}
+
+void Thread_pool::logServiceTime( double serviceTime )
+{
+
+    std::string directoryPath = "temp_files";
+    std::string filePath = "temp_files/serviceTime.log";
+
+    // Check if the directory exists or create it if it doesn't
+    if (!std::filesystem::exists(directoryPath))
+    {
+        std::filesystem::create_directory(directoryPath);
+    }
+
+    // Open the file inside the directory
+    std::ofstream file(filePath, std::ios::out);
+
+    if (file.is_open())
+    {
+        auto timenow = chrono::system_clock::to_time_t(chrono::system_clock::now());
+
+        char curr_time[100]; // Buffer to hold the formatted time
+        std::strftime(curr_time, sizeof(curr_time), "%H:%M:%S", std::localtime(&timenow));
+        string curr_time_(curr_time);
+
+        std::string serviceTimeEntry = curr_time_ + " " + std::to_string(serviceTime);
+
+        file << serviceTimeEntry << std::endl;
+        file.close();
     }
     else
     {

@@ -12,6 +12,7 @@ mkdir -p temp_files
 log_file="temp_files/server_snapshot.log"
 nc_output_file="temp_files/server_snapshot_nc.log"
 avg_q_len_file="temp_files/avgQ.log"
+serviceTime_file="temp_files/serviceTime.log"
 
 
 while [ true ]; do
@@ -36,9 +37,9 @@ while [ true ]; do
     else
         echo "Starting transferring the log files to the client machine....."
         # Copy log.txt to a remote location using scp
-        scp "$log_file" "$nc_output_file" "$avg_q_len_file" $client_machine_path
+        scp "$log_file" "$nc_output_file" "$avg_q_len_file" "$serviceTime_file" $client_machine_path
         pkill -f "nc -l -p 12345"
-        #rm -rf temp_files
+        rm -rf temp_files
         break
     fi
 done

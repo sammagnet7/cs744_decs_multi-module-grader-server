@@ -73,14 +73,14 @@ print(clients_vs_errReq)
 #Plotting graph: #
 ###################
 fig, axs = plt.subplots(2, 3)
-fig.suptitle('Autograding server performance analysis')
+fig.suptitle('Autograding server performance analysis : Client side')
 
 
 axs[0,0].plot(clients, clients_vs_timeout, color='magenta', marker='o', markersize=2)
 axs[0,0].set(xlabel='Number of clients',ylabel='Timeouts (per sec)')
 axs[0,0].set_title("Number of Clients vs Timeouts")
 
-axs[0,2].plot(clients, clients_vs_errReq, color='yellow', marker='o', markersize=2)
+axs[0,2].plot(clients, clients_vs_errReq, color='darkorange', marker='o', markersize=2)
 axs[0,2].set(xlabel='Number of clients', ylabel='Error Requests (per sec)')
 axs[0,2].set_title("Number of Clients vs Error Requests")
 
@@ -97,23 +97,6 @@ axs[1,0].plot(clients, clients_vs_throughput, color='blue', marker='o', markersi
 axs[1,0].set(xlabel='Number of clients', ylabel='Throughput(Goodput)(per sec)')
 axs[1,0].set_title("Number of Clients vs Throughput(Goodput)")
 
-
-# spacing = 0.01 # This can be your user specified spacing. 
-# minorLocator = MultipleLocator(spacing)
-# # Set minor tick locations.
-# axs[0,0].yaxis.set_minor_locator(minorLocator)
-# axs[0,0].xaxis.set_minor_locator(minorLocator)
-# # Set grid to use minor tick locations. 
-# axs[0,0].grid(which = 'minor')
-
-# spacing = 0.01 # This can be your user specified spacing. 
-# minorLocator = MultipleLocator(spacing)
-# # Set minor tick locations.
-# axs[1,0].yaxis.set_minor_locator(minorLocator)
-# axs[1,0].xaxis.set_minor_locator(minorLocator)
-# # Set grid to use minor tick locations. 
-# axs[1,0].grid(which = 'minor')
-
 axs[0,0].grid(color = 'green', linestyle = '--', linewidth = 0.5)
 axs[0,1].set_visible(False)
 axs[0,2].grid(color = 'green', linestyle = '--', linewidth = 0.5)
@@ -123,6 +106,5 @@ axs[1,2].grid(color = 'green', linestyle = '--', linewidth = 0.5)
 
 fig.tight_layout()
 
+#plt.savefig("graph_client_side.png", bbox_inches='tight')
 plt.show()
-#plt.savefig("graph.png", bbox_inches='tight')
-
