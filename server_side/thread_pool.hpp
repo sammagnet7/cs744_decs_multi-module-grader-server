@@ -20,6 +20,7 @@ public:
     //void done();
     void infinite_loop_func();
     void logQueueLength();
+    void logServiceTime(long serviceTime);
     int getCurrQueueLen();
 
     
