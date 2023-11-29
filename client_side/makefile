@@ -1,14 +1,14 @@
 source: client
 
 client: client.o fileio.o fileio.hpp
-	g++ -std=c++17 -w -o submit gradingclient.o fileio.o
+	@g++ -std=c++17 -w -o submit gradingclient.o fileio.o
 
 client.o: gradingclient.cpp
-	g++ -std=c++17 -w -c gradingclient.cpp
+	@g++ -std=c++17 -w -c gradingclient.cpp
 
 
 fileio.o: fileio.cpp fileio.hpp
-	g++ -std=c++17 -w -c fileio.cpp
+	@g++ -std=c++17 -w -c fileio.cpp
 
 
 
@@ -16,4 +16,4 @@ fileio.o: fileio.cpp fileio.hpp
 
 clean:
 	-rm submit
-	find . -type f -name "*.o" -exec rm {} \;
+	@find . -type f -name "*.o" -exec rm {} \;

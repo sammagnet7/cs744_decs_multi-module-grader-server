@@ -69,7 +69,7 @@ int receiveId(int client_socket, string &trace_id)
         close(client_socket);
         return -1;
     }
-    buffer[datalen] = '\0';
+    buffer[bytes_received] = '\0';
     string temp(buffer);
     trace_id = temp;
 
