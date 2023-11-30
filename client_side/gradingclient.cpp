@@ -224,6 +224,7 @@ int main(int argc, char *argv[])
     auto LStart = chrono::high_resolution_clock::now();
     while (loopNum--)
     {
+        cout << "------------ New Submission ------------------------" << endl;
         bool *_isSuccess = new bool(false);
         bool *_isTimedOut = new bool(false);
 
@@ -274,7 +275,7 @@ int main(int argc, char *argv[])
     double timeout_count_p_sec = timeout_count > 0 ? ((timeout_count / turnAroundTime) * 1000) : 0;
     double other_err_count_p_sec = other_err_count > 0 ? ((other_err_count / turnAroundTime) * 1000) : 0;
 
-    cout << "-------------------per client basis stats-------------------------------" << endl;
+    cout << "============================== per client basis stats ======================================" << endl;
     cout << "Accumulated response time (in sec) :" << (accumulated_time / 1000) << endl;
     cout << "Average response time (in sec) :" << (avgRespTime / 1000) << endl;
 
