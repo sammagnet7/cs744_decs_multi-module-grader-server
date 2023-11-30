@@ -41,7 +41,7 @@ for count in range(minClients,maxClients+steps,steps):
 	sleep_timer=(count/5)
 
 	#Arguments: $numClients $loopNum $sleepTimeSeconds $timeout $pollInterval
-	output = run(['./loadtest.sh', str(count),'10','2', '200', '1'], stdout=PIPE).stdout.splitlines()
+	output = run(['./loadtest.sh', str(count),'5','2', '300', '1'], stdout=PIPE).stdout.splitlines()
 
 	clients.append(int(count))
 	clients_vs_responseTime.append( float( str( output[2] ).split( ':' )[1].rstrip("'") ) )
