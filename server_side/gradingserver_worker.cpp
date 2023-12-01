@@ -50,7 +50,6 @@ int receiveall(int client_socket, string &data)
         totalReceived += currentLen;
         bytesLeft -= currentLen;
 
-        cout << "Thread id: " << std::this_thread::get_id() << ":: Total data received: " << totalReceived << endl;
     }
     return currentLen == -1 ? -1 : 0; // return -1 on failure, 0 on success
 }
