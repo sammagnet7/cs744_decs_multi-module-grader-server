@@ -4,7 +4,7 @@
 
 using namespace std;
 
-const string EXPECTED_OUTPUT = "1 2 3 4 5 6 7 8 9 10 ";
+const string EXPECTED_OUTPUT = "1 2 3 4 5 6 7 8 9 10";
 
 //<<<<<<<<<<<<<<<=============== Utility methods definitions below =============>>>>>>>>>>>>>>>>
 //
@@ -27,7 +27,7 @@ int receiveall(int client_socket, string &data)
         close(client_socket);
         return -1;
     }
-    char buffer[datalen];
+    char buffer[datalen+1];
     bytesLeft = datalen;
     while (totalReceived < datalen)
     {
