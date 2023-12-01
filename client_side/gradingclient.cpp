@@ -1,6 +1,7 @@
 #include "fileio.hpp"
 
 #include <iostream>
+#include <netdb.h>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
@@ -206,7 +207,16 @@ int main(int argc, char *argv[])
     }
 
     // Extract all the command line args
-    server_ip = strtok(argv[1], ":");
+    
+     hostent * record = gethostbyname(  strtok(argv[1], ":") );
+    if(record == NULL)
+    {
+        printf("%s is unavailable\n", strtok(argv[1], ":")  );
+        exit(1);
+    }
+    in_addr * address = (in_addr * )record->h_addr;
+    server_ip = inet_ntoa(* address);
+    
     server_port = stoi(strtok(NULL, ":"));
     file_name = argv[2];
     timeout_seconds = stof(argv[5]);
