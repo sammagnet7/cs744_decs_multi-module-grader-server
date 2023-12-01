@@ -19,4 +19,4 @@ done
 make clean
 make
 
-./server 8080 8
+./server 8080
