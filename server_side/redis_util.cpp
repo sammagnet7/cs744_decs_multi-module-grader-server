@@ -33,7 +33,7 @@ void Redis_util::pushBack(std::string traceId)
     {
         auto redis = connect();
 
-        redis.lpush(queue_name, traceId);
+        redis.rpush(queue_name, traceId);
 
         /*LOGGING*/
         auto threadId = std::this_thread::get_id();

@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    cout << "Server listening on port: "<< port <<endl;
+    cout << "Query Server listening on port: "<< port <<endl;
 
 
     std::vector<std::thread> threads;
