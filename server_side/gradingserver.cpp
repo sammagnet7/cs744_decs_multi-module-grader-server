@@ -19,7 +19,7 @@
 using namespace std;
 
 
-const int MAX_BACKLOG_QUEUE_SIZE = 10;
+const int MAX_BACKLOG_QUEUE_SIZE = 100;
 
 
 //<<<<<<<<<<<<<<<=============== Utility methods definitions below =============>>>>>>>>>>>>>>>>
