@@ -1,3 +1,2 @@
 # Systems_IITB
-Git repo link:  https://github.com/sammagnet7/Systems_IITB.git
-#line
+For more info checkout: https://github.com/sammagnet7/cs744_decs_multi-module-grader-server/tree/main/Docs
