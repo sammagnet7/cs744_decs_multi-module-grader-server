@@ -4,7 +4,9 @@
 
 ## client_side
 
+```bash
 cd Systems_IITB
+```
 
 Make a zip of server_side folder and send to server side machine using scp command: 	```scp hostname@ip:~/Folder```
 
