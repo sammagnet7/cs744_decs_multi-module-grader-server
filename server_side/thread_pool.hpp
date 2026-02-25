@@ -6,6 +6,9 @@
 #include <atomic>
 #include <cassert>
 #include <filesystem>
+#include <random>
+
+#include "fileio.hpp"
 
 class Thread_pool
 {
@@ -17,10 +20,12 @@ public:
     ~Thread_pool();
 
     void push(int func);
-    //void done();
-    void infinite_loop_func();
-    void logQueueLength();
-    int getCurrQueueLen();
+    void infinite_submission_loop_func();
+    void infinite_grading_loop_func();
+    void infinite_statusCheck_loop_func();
+    void logSharedQueueLength();
+    void logServiceTime(long serviceTime);
+    int getLocalQueueLen();
 
     
 private:
@@ -28,4 +33,5 @@ private:
     std::mutex queue_mutex;
     std::condition_variable mutex_condition;
     std::atomic<bool> server_live;
+    static long long getUniqueId();
 };

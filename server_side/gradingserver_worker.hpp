@@ -14,18 +14,29 @@
 #include <stdint.h>
 #include<thread>
 
+#include "redis_util.hpp"
+#include "postgres_util.hpp"
 using namespace std;
 
 
 // receives all incoming data associated with given socket into the pointed string
 int receiveall(int client_socket, string &data);
 
+// receives trace_id associated with given socket into the pointed string
+int receiveId(int client_socket, string &data);
+
 // sends all the data stored in the pointed char buffer to the specified socket
 int sendall(int socket, string buf, int datalen);
 
 
 //the submitted file is run using g++ compiler
-string run_prog(string prog, string client_socket, vector<string>& files_to_remove);
+GradingDetails run_prog(string recvd_string, string thread_id, vector<string>& files_to_remove);
 
 //this function handles the worker thread
-void worker_handler(int client_socket);
+void submission_worker_handler(int client_socket, string traceId);
+
+void grader_worker_handler();
+
+void statusCheck_worker_handler(int sockfd);
+
+long long getSharedQueueLength();

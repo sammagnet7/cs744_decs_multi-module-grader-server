@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <filesystem>
 
 using namespace std;
 
@@ -21,6 +22,7 @@ void save_to_file(string filename, string input);
 // removes all the temporarily created files
 void removeTempFiles(vector<string> files_to_remove);
 
-
+//Logs any passed message to log file
+void logMessageToFile(const std::string& message);
 
 #endif

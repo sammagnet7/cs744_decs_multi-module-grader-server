@@ -1,0 +1,32 @@
+
+sudo apt install redis
+
+sudo systemctl status redis
+
+sudo nano /etc/redis/redis.conf
+
+#bind 127.0.0.1 ::1
+
+#bind 127.0.0.1 ::1
+
+sudo systemctl restart redis
+
+In file redis_util.cpp modify: conn_addr_redis = "tcp://10.157.3.21:6379/";
+
+########### Test #################
+redis-server
+
+redis-cli
+
+keys *
+set key1 "test"
+mget key1
+lpush jobs "test"
+lrange jobs 0 -1
+exit
+
+#################################
+telnet localhost 6379
+cntrl]
+close
+

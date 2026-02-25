@@ -1,13 +1,15 @@
 #!/bin/bash
 
+### This script is used for generating load by creating parallel submission clients to the server
+
+
 #Enter the server ip:port to submit requests
-serverip_port=10.157.3.213:8080
-#for bash debugging
-#set -x 
+serverip_port=10.130.154.66:8080
+queryServerPort=9090
 
 
-if [ $# -ne 4 ]; then
-	echo "Usage: $0 <numClients> <loopNum> <sleepTimeSeconds> <timeout-seconds>"
+if [ $# -ne 5 ]; then
+	echo "Usage: $0 <numClients> <loopNum> <sleepTimeSeconds> <timeout-seconds> <polling-interval>"
 	exit
 fi
 
@@ -15,15 +17,15 @@ numClients=$1
 loopNum=$2
 sleepTimeSeconds=$3
 timeout=$4
+pollInterval=$5
 
-echo "Arguments passed: #clients: "$numClients" #loops: "$loopNum" sleep: "$sleepTimeSeconds" timeout: "$timeout
+echo "Arguments passed: #clients: "$numClients" #loops: "$loopNum" sleep: "$sleepTimeSeconds" timeout: "$timeout" polling-interval: "$pollInterval 
 
-mkdir  temp_files
+mkdir -p temp_files
 
 counter=$numClients
 for (( i = 0; i < $counter; i++ )); do
-	#../client_side/submit 10.157.3.213:8080 ../client_side/test/source_P.cpp 10 0.5 0.9
-	../client_side/submit $serverip_port ../client_side/test/source_P.cpp $loopNum $sleepTimeSeconds $timeout > temp_files/output_$i.txt 2>&1 &
+	../client_side/submit $serverip_port ../client_side/test/source_P.cpp $loopNum $sleepTimeSeconds $timeout $queryServerPort $pollInterval > temp_files/output_$i.txt 2>&1 &
 done
 
 wait
@@ -42,8 +44,6 @@ declare -a per_client_totalRequests
 declare -a per_client_throughput
 declare -a per_client_timeoutrequests
 declare -a per_client_errorRequests
-#declare -a acc_resp_times
-#declare -a loop_times
 
 for (( i = 0; i < $counter; i++ )); do
 
@@ -56,8 +56,6 @@ for (( i = 0; i < $counter; i++ )); do
 	per_client_timeoutrequests[$i]=$( cat temp_files/output_$i.txt | awk '/Individual client timeout requests/ {print $0}' | awk -F: '{print $2;}'  )
 	per_client_errorRequests[$i]=$( cat temp_files/output_$i.txt | awk '/Individual client other error requests/ {print $0}' | awk -F: '{print $2;}'  )
 
-	#acc_resp_times[$i]=$(cat temp_files/output_$i.txt | awk '/Accumulated response time/ {print $0}' | awk -F: '{print $2;}')
-	#loop_times[$i]=$(cat temp_files/output_$i.txt | awk '/Turn Around Time or loop time/ {print $0}' | awk -F: '{print $2;}')
 
 done
 
@@ -85,9 +83,6 @@ for (( i = 0; i < $counter; i++ )); do
 	sum_of_timeoutrequests=$( awk '{print $1+$2}' <<<"${sum_of_timeoutrequests} ${per_client_timeoutrequests[$i]}" )
 	sum_of_errRequets=$( awk '{print $1+$2}' <<<"${sum_of_errRequets} ${per_client_errorRequests[$i]}" )
 
-	
-	#sum_of_throughput=$( awk '{ if($3 == 0) {print $1} else { print $1 + ( ($2 * 1000) / $3 ) } }' <<<"${sum_of_throughput} ${success_counts[$i]} ${acc_resp_times[$i]}" )
-	#sum_of_throughput=$( awk '{ if($3 == 0) {print $1} else { print $1 + ( ($2 * 1000) / $3 ) } }' <<<"${sum_of_throughput} ${success_counts[$i]} ${loop_times[$i]}" )
 
 done
 
@@ -110,8 +105,6 @@ overall_avg_resp_t=$( awk '{ if($2 == 0){print 0} else {print $1/$2} }' <<< "${s
 #Print outputs:
 ############################
 
-rm -rf temp_files
-
 echo "Number of clients :"$numClients
 echo "Overall average response time (in sec) :"$overall_avg_resp_t
 
@@ -120,4 +113,5 @@ echo "Overall throughput per sec:"$overall_throughput
 echo "Overall timeout requests per sec:"$overall_timeoutrequests
 echo "Overall error requests per sec:"$overall_sum_of_errRequets
 
-
+#At deployment time for deleting uncomment below line
+#rm -rf temp_files
